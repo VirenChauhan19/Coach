@@ -11,6 +11,7 @@ import {
   User,
 } from "lucide-react";
 import { workoutInstantForDay } from "@/lib/date";
+import { compareWorkouts } from "@/lib/ordering";
 import { useDates } from "./time-zone";
 import { WORKOUT_TYPE_ORDER, workoutMeta } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -87,7 +88,7 @@ export function CalendarView({
       map.set(k, arr);
     }
     for (const arr of map.values()) {
-      arr.sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+      arr.sort(compareWorkouts);
     }
     return map;
   }, [events]);

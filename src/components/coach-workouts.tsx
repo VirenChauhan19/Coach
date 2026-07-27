@@ -25,6 +25,7 @@ import { RevealList } from "./ui/reveal-list";
 import { WORKOUT_TYPE_ORDER, workoutMeta } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useDates } from "./time-zone";
+import { compareWorkouts, compareWorkoutsDesc } from "@/lib/ordering";
 
 export type CoachWorkoutRow = WorkoutInitial & {
   total: number;
@@ -120,10 +121,10 @@ export function CoachWorkouts({
   const todayKey = format(nowISO, "yyyy-MM-dd");
   const upcoming = workouts
     .filter((w) => format(w.dateISO, "yyyy-MM-dd") >= todayKey)
-    .sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+    .sort(compareWorkouts);
   const past = workouts
     .filter((w) => format(w.dateISO, "yyyy-MM-dd") < todayKey)
-    .sort((a, b) => b.dateISO.localeCompare(a.dateISO));
+    .sort(compareWorkoutsDesc);
   const trackable = workouts.filter((w) => w.type !== "REST");
   const assignedTotal = trackable.reduce((sum, w) => sum + w.total, 0);
   const completedTotal = trackable.reduce((sum, w) => sum + w.completed, 0);

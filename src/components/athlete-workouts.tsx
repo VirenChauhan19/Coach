@@ -13,6 +13,7 @@ import { RevealList } from "./ui/reveal-list";
 import { WORKOUT_TYPE_ORDER, workoutMeta } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useDates } from "./time-zone";
+import { compareWorkouts, compareWorkoutsDesc } from "@/lib/ordering";
 
 function MetricTile({
   icon: Icon,
@@ -165,10 +166,10 @@ export function AthleteWorkouts({
   const todayKey = format(nowISO, "yyyy-MM-dd");
   const upcoming = assignments
     .filter((a) => format(a.workout.dateISO, "yyyy-MM-dd") >= todayKey)
-    .sort((a, b) => a.workout.dateISO.localeCompare(b.workout.dateISO));
+    .sort((a, b) => compareWorkouts(a.workout, b.workout));
   const past = assignments
     .filter((a) => format(a.workout.dateISO, "yyyy-MM-dd") < todayKey)
-    .sort((a, b) => b.workout.dateISO.localeCompare(a.workout.dateISO));
+    .sort((a, b) => compareWorkoutsDesc(a.workout, b.workout));
 
   if (assignments.length === 0) {
     return (

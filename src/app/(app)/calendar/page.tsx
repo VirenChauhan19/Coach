@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/ui/page-header";
 import { CalendarView, type CalEvent } from "@/components/calendar-view";
+import { WORKOUT_ORDER, ASSIGNMENT_BY_WORKOUT } from "@/lib/ordering";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,7 @@ export default async function CalendarPage() {
           ...calendarFields,
           _count: { select: { assignments: { where: activeAssignee } } },
         },
-        orderBy: { date: "asc" },
+        orderBy: WORKOUT_ORDER,
       }),
       // Names are listed per athlete only on INDIVIDUAL sessions; team sessions
       // just read "Whole team". So only individual sessions need their roster of
@@ -83,7 +84,7 @@ export default async function CalendarPage() {
         status: true,
         workout: { select: calendarFields },
       },
-      orderBy: { workout: { date: "asc" } },
+      orderBy: ASSIGNMENT_BY_WORKOUT,
     });
     events = assignments.map((a) => ({
       id: a.id,

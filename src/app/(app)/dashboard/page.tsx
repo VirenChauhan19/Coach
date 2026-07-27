@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, getViewerTimeZone } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { dateHelpers } from "@/lib/date";
+import { WORKOUT_ORDER } from "@/lib/ordering";
 import { toAssignmentDTO, type AssignmentDTO } from "@/lib/dto";
 import { parsePaces } from "@/lib/utils";
 import { AthleteDashboard, type DayCell } from "@/components/athlete-dashboard";
@@ -81,12 +82,19 @@ export default async function DashboardPage() {
       }),
     ]);
 
-    const teamFirst = (a: { workout: { scope: string; date: Date } }, b: { workout: { scope: string; date: Date } }) =>
-      a.workout.scope === b.workout.scope
-        ? a.workout.date.getTime() - b.workout.date.getTime()
-        : a.workout.scope === "TEAM"
-          ? -1
-          : 1;
+    // Whole-team session first, then chronological. Everything after that is a
+    // tiebreaker: sessions on one day share a timestamp, so without the title
+    // and id the order would be left to the database and could shift between
+    // loads (see lib/ordering.ts).
+    type Sortable = {
+      workoutId: string;
+      workout: { scope: string; date: Date; title: string };
+    };
+    const teamFirst = (a: Sortable, b: Sortable) =>
+      b.workout.scope.localeCompare(a.workout.scope) ||
+      a.workout.date.getTime() - b.workout.date.getTime() ||
+      a.workout.title.localeCompare(b.workout.title) ||
+      a.workoutId.localeCompare(b.workoutId);
 
     const today = todayAssignments.sort(teamFirst).map(toAssignmentDTO);
 
@@ -200,7 +208,7 @@ export default async function DashboardPage() {
           select: { status: true, athleteId: true },
         },
       },
-      orderBy: [{ scope: "asc" }, { date: "asc" }],
+      orderBy: [{ scope: "desc" }, { date: "asc" }, { title: "asc" }, { id: "asc" }],
     }),
     prisma.feedback.findMany({
       where: { athlete: { active: true }, workout: { teamId } },
@@ -213,7 +221,7 @@ export default async function DashboardPage() {
     }),
     prisma.workout.findMany({
       where: { teamId, date: { gte: todayStart } },
-      orderBy: { date: "asc" },
+      orderBy: WORKOUT_ORDER,
       take: 6,
       include: {
         assignments: {

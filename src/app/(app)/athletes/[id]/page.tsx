@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/ui/empty";
 import { PacesCard, GroupBadge } from "@/components/paces-card";
 import { cn, parsePersonalBests, parsePaces, eventsList } from "@/lib/utils";
 import { dateHelpers } from "@/lib/date";
+import { ASSIGNMENT_BY_WORKOUT, ASSIGNMENT_BY_WORKOUT_DESC } from "@/lib/ordering";
 import { statusMeta, workoutMeta } from "@/lib/constants";
 import { CalendarView, type CalEvent } from "@/components/calendar-view";
 import { AthleteNoteEditor } from "@/components/athlete-note-editor";
@@ -41,7 +42,7 @@ export default async function AthleteDetailPage({
   const assignments = await prisma.assignment.findMany({
     where: { athleteId: id },
     include: { workout: true, feedback: true },
-    orderBy: { workout: { date: "desc" } },
+    orderBy: ASSIGNMENT_BY_WORKOUT_DESC,
     take: 50,
   });
 
@@ -64,13 +65,13 @@ export default async function AthleteDetailPage({
     prisma.assignment.findMany({
       where: { athleteId: id, workout: { date: { gte: todayStart } } },
       include: { workout: { select: { title: true, type: true, date: true } } },
-      orderBy: { workout: { date: "asc" } },
+      orderBy: ASSIGNMENT_BY_WORKOUT,
       take: 30,
     }),
     prisma.assignment.findMany({
       where: { athleteId: id, workout: { date: { lt: todayStart } } },
       include: { workout: { select: { title: true, type: true, date: true } } },
-      orderBy: { workout: { date: "desc" } },
+      orderBy: ASSIGNMENT_BY_WORKOUT_DESC,
       take: 10,
     }),
   ]);
@@ -103,7 +104,7 @@ export default async function AthleteDetailPage({
         },
       },
     },
-    orderBy: { workout: { date: "asc" } },
+    orderBy: ASSIGNMENT_BY_WORKOUT,
   });
   const athleteEvents: CalEvent[] = calAssignments.map((a) => ({
     id: a.id,

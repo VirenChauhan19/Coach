@@ -4,6 +4,7 @@ import { getCurrentUser, getViewerTimeZone } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { toAssignmentDTO } from "@/lib/dto";
 import { WORKOUTS_PAST_DAYS } from "@/lib/query-limits";
+import { WORKOUT_ORDER, ASSIGNMENT_BY_WORKOUT } from "@/lib/ordering";
 import { CoachWorkouts, type CoachWorkoutRow } from "@/components/coach-workouts";
 import { AthleteWorkouts } from "@/components/athlete-workouts";
 
@@ -35,7 +36,7 @@ export default async function WorkoutsPage() {
             select: { id: true, athleteId: true, status: true, customNote: true },
           },
         },
-        orderBy: { date: "asc" },
+        orderBy: WORKOUT_ORDER,
       }),
       prisma.user.findMany({
         where: { teamId: user.teamId ?? undefined, role: "ATHLETE", active: true },
@@ -75,7 +76,7 @@ export default async function WorkoutsPage() {
   const assignmentRows = await prisma.assignment.findMany({
     where: { athleteId: user.id, workout: { date: { gte: historyFrom } } },
     include: { workout: true, feedback: true },
-    orderBy: { workout: { date: "asc" } },
+    orderBy: ASSIGNMENT_BY_WORKOUT,
   });
   const assignments = assignmentRows.map(toAssignmentDTO);
 
