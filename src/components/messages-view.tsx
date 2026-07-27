@@ -128,7 +128,10 @@ export function MessagesView({
         if (!a.last && !b.last) return a.name.localeCompare(b.name);
         if (!a.last) return 1;
         if (!b.last) return -1;
-        return b.last.createdISO.localeCompare(a.last.createdISO);
+        return (
+          b.last.createdISO.localeCompare(a.last.createdISO) ||
+          a.name.localeCompare(b.name)
+        );
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dms, athletes, isCoach, coachName, meId]);
@@ -137,7 +140,9 @@ export function MessagesView({
     if (selected === ANN || selected === GROUP || selected === PHOTOS) return [];
     return dms
       .filter((m) => other(m) === selected)
-      .sort((a, b) => a.createdISO.localeCompare(b.createdISO));
+      // id breaks ties so two messages sent in the same millisecond keep a
+      // fixed order instead of swapping between renders.
+      .sort((a, b) => a.createdISO.localeCompare(b.createdISO) || a.id.localeCompare(b.id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dms, selected, meId]);
 

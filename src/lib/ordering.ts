@@ -49,6 +49,16 @@ export const ASSIGNMENT_BY_WORKOUT_DESC: Prisma.AssignmentOrderByWithRelationInp
     { workoutId: "asc" },
   ];
 
+/**
+ * Newest message first. `id` breaks ties: two messages can land in the same
+ * millisecond, and a tied pair either side of a `take` cutoff would otherwise
+ * swap between loads.
+ */
+export const MESSAGE_NEWEST_FIRST: Prisma.MessageOrderByWithRelationInput[] = [
+  { createdAt: "desc" },
+  { id: "desc" },
+];
+
 /** The shape any client-side list needs to sort itself the same way. */
 type Sortable = {
   id: string;

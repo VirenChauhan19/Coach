@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { toMessageDTO, toGroupMessageDTO } from "@/lib/dto";
 import { MESSAGE_HISTORY } from "@/lib/query-limits";
+import { MESSAGE_NEWEST_FIRST } from "@/lib/ordering";
 import { MessagesView } from "@/components/messages-view";
 import { PageHeader } from "@/components/ui/page-header";
 
@@ -19,7 +20,7 @@ export default async function MessagesPage() {
   // flipped back into chronological order for display. Without the cap, opening
   // Messages pulled every message the team had ever sent, images included, and
   // sent them all to the phone.
-  const newestFirst = { orderBy: { createdAt: "desc" }, take: MESSAGE_HISTORY } as const;
+  const newestFirst = { orderBy: MESSAGE_NEWEST_FIRST, take: MESSAGE_HISTORY } as const;
   const senderName = { sender: { select: { name: true } } } as const;
 
   // Every query on this page is independent, so they all go out at once. This

@@ -67,7 +67,7 @@ export default async function DashboardPage() {
       user.teamId
         ? prisma.message.findFirst({
             where: { type: "ANNOUNCEMENT", teamId: user.teamId },
-            orderBy: { createdAt: "desc" },
+            orderBy: [{ createdAt: "desc" }, { id: "desc" }],
           })
         : Promise.resolve(null),
       prisma.message.count({
@@ -78,7 +78,7 @@ export default async function DashboardPage() {
           type: "DIRECT",
           OR: [{ senderId: user.id }, { recipientId: user.id }],
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       }),
     ]);
 
@@ -212,7 +212,10 @@ export default async function DashboardPage() {
     }),
     prisma.feedback.findMany({
       where: { athlete: { active: true }, workout: { teamId } },
-      orderBy: { updatedAt: "desc" },
+      // Feedback written in one batch shares an updatedAt to the millisecond,
+      // so without the id tiebreaker "the 6 most recent" is an arbitrary 6 that
+      // can come back different every load.
+      orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
       take: 6,
       include: {
         athlete: { select: { id: true, name: true } },
