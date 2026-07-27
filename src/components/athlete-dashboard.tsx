@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
   CheckCircle2,
+  X,
 } from "lucide-react";
 import type { AssignmentDTO } from "@/lib/dto";
 import { WorkoutDetail } from "./workout-detail";
@@ -60,6 +61,10 @@ export function AthleteDashboard({
   paces: Paces | null;
 }) {
   const { fmtFullDate, fmtRelative, format, hourOfDay } = useDates();
+
+  // Which day of the week strip is opened in place. null = none.
+  const [openDay, setOpenDay] = useState<string | null>(null);
+  const selectedDay = week.find((d) => d.dateISO === openDay) ?? null;
 
   // Mark shown assignments as "viewed" so the coach gets read receipts.
   useEffect(() => {
@@ -158,48 +163,65 @@ export function AthleteDashboard({
                 Full schedule <ArrowRight size={13} />
               </Link>
             </div>
+            <p className="mb-2 text-xs text-slate-400">
+              Tap any day to see that session without leaving this page.
+            </p>
             <div className="grid grid-cols-7 gap-1.5 stagger">
               {week.map((d) => {
                 const primary = d.assignments[0];
                 const type = primary?.workout.type ?? null;
                 const meta = type ? workoutMeta(type) : null;
                 const done = d.assignments.some((a) => a.status === "COMPLETED");
+                const isOpen = openDay === d.dateISO;
                 return (
-                  <div
+                  <button
                     key={d.dateISO}
+                    type="button"
+                    onClick={() => setOpenDay(isOpen ? null : d.dateISO)}
+                    aria-expanded={isOpen}
+                    // Only points at the panel while it exists.
+                    aria-controls={isOpen ? "week-day-detail" : undefined}
+                    aria-label={`${fmtFullDate(d.dateISO)} — ${
+                      d.assignments.length === 0
+                        ? "nothing scheduled"
+                        : d.assignments.map((a) => a.workout.title).join(", ")
+                    }`}
                     className={cn(
-                      "rounded-lg border p-2 text-center transition-colors",
+                      "rounded-lg border p-2 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50",
                       d.isToday
                         ? "border-ink bg-ink text-white"
-                        : "border-paper-200 bg-white hover:border-brand-200"
+                        : "border-paper-200 bg-white hover:border-brand-300 hover:bg-brand-50/60",
+                      isOpen && "ring-2 ring-brand-400 ring-offset-1"
                     )}
                   >
-                    <div
+                    {/* Spans, not divs: a <button> may only contain phrasing
+                        content, the same reason the calendar cells use them. */}
+                    <span
                       className={cn(
-                        "text-[10px] font-semibold uppercase",
+                        "block text-[10px] font-semibold uppercase",
                         d.isToday ? "text-slate-300" : "text-slate-400"
                       )}
                     >
                       {format(d.dateISO, "EEE")}
-                    </div>
-                    <div className="font-display text-lg font-bold leading-none">
+                    </span>
+                    <span className="block font-display text-lg font-bold leading-none">
                       {format(d.dateISO, "d")}
-                    </div>
-                    <div className="mt-1.5 flex h-4 items-center justify-center">
+                    </span>
+                    <span className="mt-1.5 flex h-4 items-center justify-center">
                       {meta ? (
                         <span className={cn("h-2 w-2 rounded-full", meta.dot)} />
                       ) : (
                         <span className="text-[10px] text-slate-300">·</span>
                       )}
-                    </div>
-                    <div
+                    </span>
+                    <span
                       className={cn(
-                        "mt-0.5 truncate text-[10px]",
+                        "mt-0.5 block truncate text-[10px]",
                         d.isToday ? "text-slate-200" : "text-slate-500"
                       )}
                     >
                       {meta ? meta.short : ""}
-                    </div>
+                    </span>
                     {done && (
                       <CheckCircle2
                         size={12}
@@ -209,10 +231,82 @@ export function AthleteDashboard({
                         )}
                       />
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </div>
+
+            {/* The tapped day, opened in place. Every assignment for the week is
+                already on the client, so this needs no extra request. */}
+            {selectedDay && (
+              <div id="week-day-detail" className="mt-3 animate-fade-in">
+                <div className="card overflow-hidden">
+                  <div className="flex items-center justify-between gap-2 border-b border-paper-200 px-4 py-2.5">
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-700">
+                        {selectedDay.isToday ? "Today" : "Selected day"}
+                      </div>
+                      <div className="truncate font-display text-base font-bold text-ink">
+                        {fmtFullDate(selectedDay.dateISO)}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setOpenDay(null)}
+                      className="shrink-0 rounded-md p-1.5 text-slate-400 transition hover:bg-paper-100 hover:text-ink"
+                      aria-label="Close day details"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  {selectedDay.assignments.length === 0 ? (
+                    <p className="p-4 text-sm text-slate-500">
+                      Nothing scheduled this day.
+                    </p>
+                  ) : (
+                    <div className="divide-y divide-paper-200">
+                      {selectedDay.assignments.map((a) => (
+                        <div key={a.id} className="p-4">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="font-bold text-ink">{a.workout.title}</h3>
+                            {a.workout.scope === "INDIVIDUAL" && (
+                              <span className="badge bg-brand-100 text-brand-800 ring-brand-600/30">
+                                For you
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                            <TypeBadge type={a.workout.type} />
+                            {a.workout.type !== "REST" && (
+                              <StatusBadge status={a.status} />
+                            )}
+                          </div>
+                          {a.workout.type === "REST" ? (
+                            a.workout.notes && (
+                              <p className="mt-3 text-sm text-slate-600">
+                                {a.workout.notes}
+                              </p>
+                            )
+                          ) : (
+                            <div className="mt-3">
+                              <WorkoutDetail
+                                workout={a.workout}
+                                customNote={a.customNote}
+                                compact
+                              />
+                            </div>
+                          )}
+                          <div className="mt-4 border-t border-slate-100 pt-3">
+                            <AthleteWorkoutActions assignment={a} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </section>
         </div>
 
