@@ -40,7 +40,9 @@ export async function POST(req: NextRequest) {
       throw new ApiError(401, "Incorrect email or password.");
     }
 
-    await setSessionCookie(user.id, user.sessionVersion);
+    // Remember the timezone this login came from, so the schedule renders in
+    // the viewer's own days rather than the server's (UTC).
+    await setSessionCookie(user.id, user.sessionVersion, String(body.timeZone ?? ""));
     return ok({
       id: user.id,
       role: user.role,

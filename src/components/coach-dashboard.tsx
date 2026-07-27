@@ -14,7 +14,7 @@ import { EmptyState } from "./ui/empty";
 import { CountUp, AnimatedBar } from "./ui/stat";
 import { statusMeta, workoutMeta } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { fmtFullDate, fmtRelative, smartDayLabel } from "@/lib/date";
+import { useDates } from "./time-zone";
 
 type TodayWorkout = {
   id: string;
@@ -128,6 +128,7 @@ export function CoachDashboard({
   recentFeedback: FeedbackRow[];
   upcoming: UpcomingRow[];
 }) {
+  const { fmtFullDate, fmtRelative, smartDayLabel } = useDates();
   const [workoutOpen, setWorkoutOpen] = useState(false);
   const [announceOpen, setAnnounceOpen] = useState(false);
   const [rosterFilter, setRosterFilter] = useState<RosterFilter>("all");

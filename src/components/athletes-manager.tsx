@@ -20,7 +20,7 @@ import { Avatar } from "./ui/avatar";
 import { GroupBadge } from "./paces-card";
 import { EmptyState } from "./ui/empty";
 import { cn, eventsList } from "@/lib/utils";
-import { fmtRelative } from "@/lib/date";
+import { useDates } from "./time-zone";
 
 export type RosterAthlete = AthleteEditable & {
   mileageGroup: string | null;
@@ -34,6 +34,7 @@ export type RosterAthlete = AthleteEditable & {
 type SortKey = "name" | "group" | "week" | "checkin";
 
 export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
+  const { fmtRelative } = useDates();
   const router = useRouter();
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<RosterAthlete | null>(null);

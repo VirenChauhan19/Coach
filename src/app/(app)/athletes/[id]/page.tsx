@@ -9,14 +9,14 @@ import {
   ShieldAlert,
   MessageSquare,
 } from "lucide-react";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, getViewerTimeZone } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Avatar } from "@/components/ui/avatar";
 import { TypeBadge } from "@/components/ui/badges";
 import { EmptyState } from "@/components/ui/empty";
 import { PacesCard, GroupBadge } from "@/components/paces-card";
 import { cn, parsePersonalBests, parsePaces, eventsList } from "@/lib/utils";
-import { fmtDate, format } from "@/lib/date";
+import { dateHelpers } from "@/lib/date";
 import { statusMeta, workoutMeta } from "@/lib/constants";
 import { CalendarView, type CalEvent } from "@/components/calendar-view";
 import { AthleteNoteEditor } from "@/components/athlete-note-editor";
@@ -58,8 +58,8 @@ export default async function AthleteDetailPage({
   const pbs = parsePersonalBests(athlete.personalBests);
   const paces = parsePaces(athlete.paces);
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  const { fmtDate, format, startOfDay } = dateHelpers(await getViewerTimeZone());
+  const todayStart = startOfDay(new Date());
   const [upcoming, past] = await Promise.all([
     prisma.assignment.findMany({
       where: { athleteId: id, workout: { date: { gte: todayStart } } },

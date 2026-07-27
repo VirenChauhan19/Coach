@@ -14,7 +14,7 @@ import { PacesCard } from "./paces-card";
 import { CountUp, AnimatedBar } from "./ui/stat";
 import { workoutMeta } from "@/lib/constants";
 import { cn, type Paces } from "@/lib/utils";
-import { fmtFullDate, fmtRelative, format } from "@/lib/date";
+import { useDates } from "./time-zone";
 
 export type DayCell = {
   dateISO: string;
@@ -22,10 +22,9 @@ export type DayCell = {
   assignments: AssignmentDTO[];
 };
 
-function greeting(nowISO: string) {
-  const h = new Date(nowISO).getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
+function greeting(hour: number) {
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
   return "Good evening";
 }
 
@@ -60,6 +59,8 @@ export function AthleteDashboard({
   ezTarget: string | null;
   paces: Paces | null;
 }) {
+  const { fmtFullDate, fmtRelative, format, hourOfDay } = useDates();
+
   // Mark shown assignments as "viewed" so the coach gets read receipts.
   useEffect(() => {
     if (viewIds.length === 0) return;
@@ -86,7 +87,7 @@ export function AthleteDashboard({
         <div className="relative p-5 sm:p-7">
           <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-300">
             <span className="h-3 w-1 rounded-full bg-brand-400" />
-            {greeting(nowISO)}
+            {greeting(hourOfDay(nowISO))}
           </p>
           <h1 className="mt-3 font-display text-4xl font-bold uppercase leading-[0.9] tracking-tight text-white sm:text-5xl xl:text-6xl">
             {firstName}

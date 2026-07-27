@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
-import { startOfDay } from "date-fns";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, getViewerTimeZone } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { weekStart, weekEnd, addDays } from "@/lib/date";
+import { dateHelpers } from "@/lib/date";
 import { PageHeader } from "@/components/ui/page-header";
 import { AthletesManager, type RosterAthlete } from "@/components/athletes-manager";
 
@@ -12,6 +11,10 @@ export default async function AthletesPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (user.role !== "COACH") redirect("/dashboard");
+
+  const { weekStart, weekEnd, addDays, startOfDay } = dateHelpers(
+    await getViewerTimeZone()
+  );
 
   const teamId = user.teamId ?? undefined;
   const now = new Date();

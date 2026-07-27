@@ -1,7 +1,12 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { apiError, ok, ApiError, requireUser } from "@/lib/api";
-import { hashPassword, verifyPassword, setSessionCookie } from "@/lib/auth";
+import {
+  hashPassword,
+  verifyPassword,
+  setSessionCookie,
+  getSessionTimeZone,
+} from "@/lib/auth";
 
 // First-login password set for provisioned accounts. Unlike PATCH /api/me, this
 // does NOT require the current password — the user has just authenticated with
@@ -44,8 +49,13 @@ export async function POST(req: NextRequest) {
       select: { sessionVersion: true },
     });
 
-    // Keep this device signed in under the new session version.
-    await setSessionCookie(user.id, updated.sessionVersion);
+    // Keep this device signed in under the new session version — carrying the
+    // detected timezone across, so a password change doesn't reset it.
+    await setSessionCookie(
+      user.id,
+      updated.sessionVersion,
+      String(b.timeZone ?? "") || (await getSessionTimeZone()) || ""
+    );
     return ok({ ok: true });
   } catch (e) {
     return apiError(e);

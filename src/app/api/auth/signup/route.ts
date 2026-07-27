@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       await prisma.team.update({ where: { id: team.id }, data: { coachId: user.id } });
     }
 
-    await setSessionCookie(user.id, user.sessionVersion);
+    await setSessionCookie(user.id, user.sessionVersion, String(body.timeZone ?? ""));
     return ok({ id: user.id, role: user.role });
   } catch (e) {
     return apiError(e);

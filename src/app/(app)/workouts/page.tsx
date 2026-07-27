@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { endOfDay, startOfDay, subDays } from "date-fns";
-import { getCurrentUser } from "@/lib/auth";
+import { dateHelpers } from "@/lib/date";
+import { getCurrentUser, getViewerTimeZone } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { toAssignmentDTO } from "@/lib/dto";
 import { WORKOUTS_PAST_DAYS } from "@/lib/query-limits";
@@ -12,6 +12,8 @@ export const dynamic = "force-dynamic";
 export default async function WorkoutsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+
+  const { endOfDay, startOfDay, subDays } = dateHelpers(await getViewerTimeZone());
 
   const now = new Date();
   const nowISO = now.toISOString();

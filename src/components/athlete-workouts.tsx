@@ -12,7 +12,7 @@ import { AnimatedBar, CountUp } from "./ui/stat";
 import { RevealList } from "./ui/reveal-list";
 import { WORKOUT_TYPE_ORDER, workoutMeta } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { format, smartDayLabel } from "@/lib/date";
+import { useDates } from "./time-zone";
 
 function MetricTile({
   icon: Icon,
@@ -73,6 +73,7 @@ function SectionHeader({
 }
 
 function Card({ a }: { a: AssignmentDTO }) {
+  const { format, smartDayLabel } = useDates();
   const isRest = a.workout.type === "REST";
   const meta = workoutMeta(a.workout.type);
 
@@ -149,6 +150,8 @@ export function AthleteWorkouts({
   viewIds: string[];
   nowISO: string;
 }) {
+  const { format, smartDayLabel } = useDates();
+
   useEffect(() => {
     if (viewIds.length === 0) return;
     fetch("/api/assignments/view", {

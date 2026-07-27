@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
-import { startOfDay, endOfDay } from "date-fns";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, getViewerTimeZone } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { weekStart, weekEnd, addDays, dayKey, isSameDay } from "@/lib/date";
+import { dateHelpers } from "@/lib/date";
 import { toAssignmentDTO, type AssignmentDTO } from "@/lib/dto";
 import { parsePaces } from "@/lib/utils";
 import { AthleteDashboard, type DayCell } from "@/components/athlete-dashboard";
@@ -13,6 +12,10 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+
+  // "Today" and "this week" mean the viewer's today and week, not the server's.
+  const { weekStart, weekEnd, addDays, dayKey, isSameDay, startOfDay, endOfDay } =
+    dateHelpers(await getViewerTimeZone());
 
   const now = new Date();
   const todayStart = startOfDay(now);

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Loader2, Pencil, Plus, StickyNote } from "lucide-react";
 import { TypeBadge } from "./ui/badges";
-import { smartDayLabel } from "@/lib/date";
+import { useDates } from "./time-zone";
 
 type NoteItem = {
   id: string;
@@ -88,6 +88,7 @@ function NoteRow({
   item: NoteItem;
   athleteFirstName: string;
 }) {
+  const { smartDayLabel } = useDates();
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(item.note ?? "");

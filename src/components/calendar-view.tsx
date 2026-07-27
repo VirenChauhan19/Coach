@@ -10,17 +10,8 @@ import {
   Users,
   User,
 } from "lucide-react";
-import {
-  startOfMonth,
-  endOfMonth,
-  addDays,
-  isSameDay,
-  isSameMonth,
-  format,
-  weekStart,
-  weekEnd,
-  dayKey,
-} from "@/lib/date";
+import { workoutInstantForDay } from "@/lib/date";
+import { useDates } from "./time-zone";
 import { WORKOUT_TYPE_ORDER, workoutMeta } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Modal } from "./ui/modal";
@@ -45,9 +36,8 @@ const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 type View = "month" | "week";
 
 // A bare "yyyy-MM-dd" key reparses as UTC midnight, which shifts a day in
-// negative timezones. Anchor to local noon so day labels stay correct.
-const keyToDate = (k: string) => `${k}T12:00:00`;
-const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
+// negative timezones. This is the same noon-UTC anchor a workout is stored at.
+const keyToDate = (k: string) => workoutInstantForDay(k).toISOString();
 
 export function CalendarView({
   events,
@@ -60,6 +50,18 @@ export function CalendarView({
   athletes?: { id: string; name: string }[];
   nowISO: string;
 }) {
+  const {
+    startOfMonth,
+    endOfMonth,
+    addDays,
+    isSameDay,
+    isSameMonth,
+    format,
+    weekStart,
+    weekEnd,
+    dayKey,
+    isWeekend,
+  } = useDates();
   const now = useMemo(() => new Date(nowISO), [nowISO]);
   const nameById = useMemo(
     () => new Map(athletes.map((a) => [a.id, a.name])),

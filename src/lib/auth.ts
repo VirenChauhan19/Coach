@@ -3,6 +3,7 @@ import { cache } from "react";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
+import { isValidTimeZone, safeTimeZone } from "./date";
 
 // MUST be "__session": when the app is served through Firebase Hosting (the
 // scadxctf.web.app proxy → App Hosting backend), Hosting strips every cookie
@@ -73,9 +74,15 @@ export async function equalizePasswordTiming(password: string): Promise<void> {
 
 async function createToken(
   userId: string,
-  sessionVersion: number
+  sessionVersion: number,
+  timeZone?: string
 ): Promise<string> {
-  return new SignJWT({ uid: userId, sv: sessionVersion })
+  // The viewer's timezone rides inside the session rather than in a cookie of
+  // its own: Firebase Hosting drops every cookie except __session, so a
+  // separate one would never reach the server (see COOKIE_NAME above).
+  const payload: Record<string, unknown> = { uid: userId, sv: sessionVersion };
+  if (isValidTimeZone(timeZone)) payload.tz = timeZone;
+  return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("30d")
@@ -84,9 +91,10 @@ async function createToken(
 
 export async function setSessionCookie(
   userId: string,
-  sessionVersion: number
+  sessionVersion: number,
+  timeZone?: string
 ): Promise<void> {
-  const token = await createToken(userId, sessionVersion);
+  const token = await createToken(userId, sessionVersion, timeZone);
   const store = await cookies();
   store.set(COOKIE_NAME, token, {
     httpOnly: true,
@@ -108,9 +116,9 @@ export async function clearSessionCookie(): Promise<void> {
   });
 }
 
-type Session = { uid: string; sv: number };
+type Session = { uid: string; sv: number; tz: string | null };
 
-async function readSession(): Promise<Session | null> {
+const readSession = cache(async (): Promise<Session | null> => {
   const store = await cookies();
   const token = store.get(COOKIE_NAME)?.value;
   if (!token) return null;
@@ -120,10 +128,28 @@ async function readSession(): Promise<Session | null> {
     if (typeof uid !== "string") return null;
     // Tokens issued before versioning are treated as v0 (still valid until a revoke).
     const sv = typeof payload.sv === "number" ? payload.sv : 0;
-    return { uid, sv };
+    // Sessions issued before timezone detection simply have no tz yet; the
+    // browser fills it in on the next page load (see <TimeZoneSync/>).
+    const tz = isValidTimeZone(payload.tz) ? payload.tz : null;
+    return { uid, sv, tz };
   } catch {
     return null;
   }
+});
+
+/**
+ * The timezone to render this request's dates in — where the viewer logged in
+ * from. Falls back to the team's zone for a session that predates detection.
+ * Cached per-request, like getCurrentUser.
+ */
+export const getViewerTimeZone = cache(async (): Promise<string> => {
+  const session = await readSession();
+  return safeTimeZone(session?.tz);
+});
+
+/** The raw stored value, so we can tell "not set yet" from "set to the team zone". */
+export async function getSessionTimeZone(): Promise<string | null> {
+  return (await readSession())?.tz ?? null;
 }
 
 export type SessionUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;

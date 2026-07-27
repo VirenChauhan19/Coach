@@ -17,6 +17,28 @@ runConfig:
   memoryMiB: 1024
 
 env:
+  # Dates render in each viewer's own timezone, detected at login and carried in
+  # their session (src/lib/auth.ts). These two settings only cover the gaps.
+  #
+  # NEXT_PUBLIC_TEAM_TIME_ZONE is the fallback for a session that predates
+  # detection — the team's home zone is the least surprising guess until the
+  # browser reports the real one.
+  - variable: NEXT_PUBLIC_TEAM_TIME_ZONE
+    value: America/New_York
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # TZ sets the container's own clock. Nothing in the app relies on it any more
+  # (every date calculation names its zone explicitly), but Cloud Run defaults
+  # to UTC — which is 4-5 hours ahead of Eastern — so this keeps logs and any
+  # future code that asks the machine for the date honest.
+  - variable: TZ
+    value: America/New_York
+    availability:
+      - BUILD
+      - RUNTIME
+
   # Postgres connection string (use your provider's POOLED string).
   # Create the secret with:  firebase apphosting:secrets:set DATABASE_URL
   - variable: DATABASE_URL

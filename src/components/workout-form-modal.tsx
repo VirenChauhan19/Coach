@@ -13,7 +13,7 @@ import {
   WORKOUT_PRESETS,
   defaultWorkoutTitle,
 } from "@/lib/constants";
-import { format } from "@/lib/date";
+import { useDates } from "./time-zone";
 
 export type WorkoutInitial = {
   id: string;
@@ -45,6 +45,7 @@ export function WorkoutFormModal({
   initial?: WorkoutInitial;
   defaultDateISO?: string;
 }) {
+  const { format } = useDates();
   const router = useRouter();
   const editing = Boolean(initial);
 

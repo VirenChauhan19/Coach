@@ -2,16 +2,20 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { apiError, ok, ApiError, requireCoach } from "@/lib/api";
 import { isWorkoutType, defaultWorkoutTitle } from "@/lib/constants";
+import { dateHelpers } from "@/lib/date";
+import { getViewerTimeZone } from "@/lib/auth";
 
 const clean = (v: unknown): string | null => {
   const s = String(v ?? "").trim();
   return s.length ? s : null;
 };
 
-function parseDate(input: unknown): Date {
-  const s = String(input ?? "");
-  const date = /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(`${s}T07:00:00`) : new Date(s);
-  if (isNaN(date.getTime())) throw new ApiError(400, "Please choose a valid date.");
+async function parseDate(input: unknown): Promise<Date> {
+  // Same anchor as the create route, so editing a workout can't quietly slide
+  // it onto a different day than the one the coach picked.
+  const { parseWorkoutDate } = dateHelpers(await getViewerTimeZone());
+  const date = parseWorkoutDate(input);
+  if (!date) throw new ApiError(400, "Please choose a valid date.");
   return date;
 }
 
@@ -40,7 +44,7 @@ export async function PATCH(
       data.title = String(b.title).trim() || defaultWorkoutTitle(nextType);
     }
     if (b.type !== undefined && isWorkoutType(b.type)) data.type = b.type;
-    if (b.date !== undefined) data.date = parseDate(b.date);
+    if (b.date !== undefined) data.date = await parseDate(b.date);
     for (const f of ["distance", "pace", "warmup", "mainSet", "cooldown", "notes", "location", "link"] as const) {
       if (b[f] !== undefined) data[f] = clean(b[f]);
     }

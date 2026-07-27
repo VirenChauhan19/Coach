@@ -6,6 +6,7 @@ import Link from "next/link";
 import { LogoMark } from "./ui/logo";
 import { Field, FormError } from "./ui/field";
 import { Loader2 } from "lucide-react";
+import { browserTimeZone } from "./time-zone";
 
 type Mode = "login" | "signup";
 
@@ -31,7 +32,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        // Tell the server where we're signing in from, so the schedule renders
+        // in this device's days rather than the server's.
+        body: JSON.stringify({ ...payload, timeZone: browserTimeZone() }),
       });
       const data = await res.json();
       if (!res.ok) {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogoMark } from "./ui/logo";
 import { Field, FormError } from "./ui/field";
 import { Check, Eye, EyeOff, Loader2 } from "lucide-react";
+import { browserTimeZone } from "./time-zone";
 
 export function SetPasswordForm({ name }: { name: string }) {
   const router = useRouter();
@@ -35,7 +36,11 @@ export function SetPasswordForm({ name }: { name: string }) {
       const res = await fetch("/api/auth/set-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ newPassword: password, confirmPassword: confirm }),
+        body: JSON.stringify({
+          newPassword: password,
+          confirmPassword: confirm,
+          timeZone: browserTimeZone(),
+        }),
       });
       const data = await res.json();
       if (!res.ok) {

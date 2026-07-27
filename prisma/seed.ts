@@ -2,8 +2,13 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
-import { addDays, startOfDay, isSameDay, subDays, subHours } from "date-fns";
+import { subHours } from "date-fns";
+// The same day math the app uses, resolved in the team's home zone — seeded
+// workouts then land on exactly the days the written plan says they do.
+import { dateHelpers, TEAM_TIME_ZONE, workoutInstantForDay } from "../src/lib/date";
 import { ATHLETES, WEEKS } from "./scad-data";
+
+const { startOfDay, isSameDay, subDays } = dateHelpers(TEAM_TIME_ZONE);
 
 const prisma = new PrismaClient();
 const DEMO_PASSWORD = "password123";
@@ -238,12 +243,14 @@ async function main() {
   const assignmentRows: ARow[] = [];
 
   for (const wk of WEEKS) {
-    const monday = new Date(`${wk.start}T00:00:00`);
+    const monday = workoutInstantForDay(wk.start);
     for (let d = 0; d < 7; d++) {
       const day = wk.days[d];
       if (!day) continue;
-      const date = addDays(monday, d);
-      date.setHours(6, 30, 0, 0);
+      // Noon UTC, the same anchor the API uses when a coach adds a workout.
+      // Stepping in whole UTC days (rather than zoned ones) keeps every session
+      // at exactly 12:00Z — a zoned step would drift an hour across a DST edge.
+      const date = new Date(monday.getTime() + d * 24 * 60 * 60 * 1000);
 
       // PR (prehab/recovery/fuel) note for the day
       const prBits: string[] = [];

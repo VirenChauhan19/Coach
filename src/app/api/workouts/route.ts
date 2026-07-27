@@ -2,12 +2,15 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { apiError, ok, ApiError, requireCoach } from "@/lib/api";
 import { isWorkoutType, defaultWorkoutTitle } from "@/lib/constants";
+import { dateHelpers } from "@/lib/date";
+import { getViewerTimeZone } from "@/lib/auth";
 
-function parseDate(input: unknown): Date {
-  const s = String(input ?? "");
-  // From <input type="date"> we get "yyyy-MM-dd", anchored to 7:00 AM local.
-  const date = /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(`${s}T07:00:00`) : new Date(s);
-  if (isNaN(date.getTime())) throw new ApiError(400, "Please choose a valid date.");
+async function parseDate(input: unknown): Promise<Date> {
+  // The day the coach picked, stored at noon UTC. Resolved against the coach's
+  // own timezone — never the server's, which is UTC in production.
+  const { parseWorkoutDate } = dateHelpers(await getViewerTimeZone());
+  const date = parseWorkoutDate(input);
+  if (!date) throw new ApiError(400, "Please choose a valid date.");
   return date;
 }
 
@@ -25,7 +28,7 @@ export async function POST(req: NextRequest) {
     const type = isWorkoutType(b.type) ? b.type : "EASY";
     // Title is optional: fall back to the workout type's label (e.g. "Easy Run").
     const title = String(b.title ?? "").trim() || defaultWorkoutTitle(type);
-    const date = parseDate(b.date);
+    const date = await parseDate(b.date);
     const scope = b.scope === "INDIVIDUAL" ? "INDIVIDUAL" : "TEAM";
 
     // Resolve who this workout is assigned to.

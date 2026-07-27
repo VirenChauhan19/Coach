@@ -1,7 +1,12 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { apiError, ok, ApiError, requireUser } from "@/lib/api";
-import { hashPassword, verifyPassword, setSessionCookie } from "@/lib/auth";
+import {
+  hashPassword,
+  verifyPassword,
+  setSessionCookie,
+  getSessionTimeZone,
+} from "@/lib/auth";
 
 const clean = (v: unknown): string | null => {
   const s = String(v ?? "").trim();
@@ -65,7 +70,11 @@ export async function PATCH(req: NextRequest) {
 
     // Keep the current device signed in, but invalidate every other session.
     if (passwordChanged) {
-      await setSessionCookie(user.id, updated.sessionVersion);
+      await setSessionCookie(
+        user.id,
+        updated.sessionVersion,
+        (await getSessionTimeZone()) || ""
+      );
     }
 
     return ok({ ok: true });

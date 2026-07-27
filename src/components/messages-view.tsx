@@ -16,7 +16,7 @@ import { Avatar } from "./ui/avatar";
 import { Modal } from "./ui/modal";
 import { Portal } from "./ui/portal";
 import { cn } from "@/lib/utils";
-import { fmtRelative, fmtTime, format, isToday } from "@/lib/date";
+import { useDates } from "./time-zone";
 import type { MessageDTO, GroupMessageDTO } from "@/lib/dto";
 
 type Ann = { id: string; body: string; createdISO: string };
@@ -30,9 +30,6 @@ const bubbleBaseClass = "min-w-0 rounded-xl px-3.5 py-2.5 text-sm shadow-sm ring
 const messageBodyClass =
   "whitespace-pre-wrap break-words leading-relaxed [overflow-wrap:anywhere]";
 
-function stamp(iso: string) {
-  return isToday(iso) ? fmtTime(iso) : format(iso, "MMM d, h:mm a");
-}
 
 // Shrink an image in the browser before upload so we store a compact data URL
 // instead of a multi-megabyte original.
@@ -92,6 +89,11 @@ export function MessagesView({
   initialPhotos: GroupMessageDTO[];
   members: Member[];
 }) {
+  const { fmtRelative, fmtTime, format, isToday } = useDates();
+  // Time-of-day for today's messages, date + time for older ones.
+  const stamp = (iso: string) =>
+    isToday(iso) ? fmtTime(iso) : format(iso, "MMM d, h:mm a");
+
   const router = useRouter();
   const [dms, setDms] = useState<MessageDTO[]>(initialDms);
   const [anns, setAnns] = useState<Ann[]>(initialAnns);
