@@ -1,5 +1,8 @@
 // AUTO-GENERATED from "SCAD XC 2026.xlsx". Do not edit by hand.
 // 18 athletes (mileage groups + pace targets) and the full 4-phase plan.
+//
+// Phase 2 (weeks 9-12) updated from "SCAD XC 2026 phase 2.xlsx": the coach
+// replaced the "3K/5K WO #1-#4" placeholders with the prescribed rep sessions.
 
 export type Paces = { ez: string; tempo: string; k10: string; k8: string; k6: string; k5: string; k3: string; mile: string };
 export type AthleteSeed = { name: string; email: string; group: string; lrTarget: string; ezTarget: string; doubleFreq: string; xtFreq: string; paces: Paces };
@@ -765,9 +768,9 @@ export const WEEKS: WeekPlan[] = [
         "PR": "FUEL + LIGHT STRETCH"
       },
       {
-        "A": "3K/5K WO #1",
-        "B": "3K/5K WO #1",
-        "C": "3K/5K WO #1",
+        "A": "10-12 X 1' @ 3K-5K W/ 1'",
+        "B": "10-12 X 1' @ 3K-5K W/ 1'",
+        "C": "10-12 X 1' @ 3K-5K W/ 1'",
         "PR": "FUEL + DAY 1 LIFT + CORE & HIP"
       },
       {
@@ -815,9 +818,9 @@ export const WEEKS: WeekPlan[] = [
         "PR": "FUEL + LIGHT STRETCH"
       },
       {
-        "A": "3K/5K WO #2",
-        "B": "3K/5K WO #2",
-        "C": "3K/5K WO #2",
+        "A": "8-10 X 90\" @ 3K-5K W/ 75\"",
+        "B": "8-10 X 90\" @ 3K-5K W/ 75\"",
+        "C": "8-10 X 90\" @ 3K-5K W/ 75\"",
         "PR": "FUEL + DAY 1 LIFT + CORE & HIP"
       },
       {
@@ -865,9 +868,9 @@ export const WEEKS: WeekPlan[] = [
         "PR": "FUEL + LIGHT STRETCH"
       },
       {
-        "A": "3K/5K WO #3",
-        "B": "3K/5K WO #3",
-        "C": "3K/5K WO #3",
+        "A": "6-8 X 2' @ 3K-5K W/ 90\"",
+        "B": "6-8 X 2' @ 3K-5K W/ 90\"",
+        "C": "6-8 X 2' @ 3K-5K W/ 90\"",
         "PR": "FUEL + DAY 1 LIFT + CORE & HIP"
       },
       {
@@ -915,9 +918,9 @@ export const WEEKS: WeekPlan[] = [
         "PR": "FUEL + LIGHT STRETCH"
       },
       {
-        "A": "3K/5K WO #4",
-        "B": "3K/5K WO #4",
-        "C": "3K/5K WO #4",
+        "A": "5-6 X 3' @ 3K-5K W/ 2-3'",
+        "B": "5-6 X 3' @ 3K-5K W/ 2-3'",
+        "C": "5-6 X 3' @ 3K-5K W/ 2-3'",
         "PR": "FUEL + DAY 1 LIFT + CORE & HIP"
       },
       {

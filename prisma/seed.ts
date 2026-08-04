@@ -7,6 +7,7 @@ import { subHours } from "date-fns";
 // workouts then land on exactly the days the written plan says they do.
 import { dateHelpers, TEAM_TIME_ZONE, workoutInstantForDay } from "../src/lib/date";
 import { ATHLETES, WEEKS } from "./scad-data";
+import { classify } from "./classify";
 
 const { startOfDay, isSameDay, subDays } = dateHelpers(TEAM_TIME_ZONE);
 
@@ -23,107 +24,6 @@ function hash(str: string): number {
   return Math.abs(h);
 }
 const pick = <T>(arr: T[], seed: number): T => arr[seed % arr.length];
-
-// ---------- workout classification ----------
-const RACES = new Set([
-  "CONVERSE KICK-OFF",
-  "FOOTHILLS INV",
-  "NAIA BLAZING TIGER",
-  "ROYALS XC CHALLENGE",
-  "SUN CONF. CHAMP.",
-  "NAIA NATIONAL CHAMP.",
-]);
-
-function durationLabel(text: string): string | null {
-  const m = text.match(/^(\d+)-(\d+)'/);
-  return m ? `${m[1]}–${m[2]} min` : null;
-}
-
-function raceTitle(t: string): string {
-  let s = t
-    .toLowerCase()
-    .replace(/\binv\b\.?/g, "invitational")
-    .replace(/\bconf\.?\b/g, "conference")
-    .replace(/\bchamp\.?\b/g, "championship");
-  s = s
-    .split(/\s+/)
-    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
-    .join(" ");
-  return s
-    .replace(/\bNaia\b/g, "NAIA")
-    .replace(/\bXc\b/g, "XC")
-    .replace(/Kick-off/i, "Kick-Off");
-}
-
-function woTitle(raw: string): string {
-  return raw
-    .replace(/\bWO\b/gi, "Workout")
-    .split(/\s+/)
-    .map((w) => (/[0-9#/"']/.test(w) ? w : w[0].toUpperCase() + w.slice(1).toLowerCase()))
-    .join(" ");
-}
-
-type Classified = {
-  type: string;
-  title: string;
-  mainSet: string | null;
-  distance: string | null;
-  pace: string | null;
-};
-
-function classify(text: string, lrTarget: string): Classified | null {
-  if (!text) return null;
-  const t = text.toUpperCase();
-  const dist = durationLabel(text);
-
-  if (t === "OFF") return { type: "REST", title: "Rest Day", mainSet: null, distance: null, pace: null };
-
-  if (RACES.has(t))
-    return {
-      type: "RACE",
-      title: raceTitle(text),
-      mainSet: "Race day — warm up early, pin numbers, line up ready to compete.",
-      distance: null,
-      pace: "Race effort",
-    };
-
-  if (t.startsWith("PRE-MEET"))
-    return { type: "WORKOUT", title: "Pre-Meet Primer", mainSet: text, distance: null, pace: "Light + strides" };
-
-  if (t.includes("TEMPO")) {
-    let title = "Tempo Workout";
-    if (t.includes("TURNOVER")) title = "Tempo + Turnover";
-    else if (t.includes("@ TEMPO")) title = "Tempo Surges";
-    else {
-      const n = t.match(/#(\d+)/);
-      title = "Tempo Workout" + (n ? ` #${n[1]}` : "");
-    }
-    const plus = text.indexOf("+");
-    const main = dist && plus > 0 ? text.slice(plus + 1).trim() : text;
-    return { type: "WORKOUT", title, mainSet: main, distance: dist, pace: "Tempo effort" };
-  }
-
-  if (/\bWO\b/.test(t) || t.includes("WO #"))
-    return { type: "WORKOUT", title: woTitle(text), mainSet: text, distance: null, pace: "See your race paces" };
-
-  if (/\bEI\b/.test(t))
-    return { type: "WORKOUT", title: "Interval Workout", mainSet: text, distance: null, pace: "3K–5K effort on reps" };
-
-  if (t.includes("STRIDES")) {
-    const plus = text.indexOf("+");
-    const main = plus > 0 ? text.slice(plus + 1).trim() : text;
-    return { type: "EASY", title: "Easy Run + Strides", mainSet: main, distance: dist, pace: "Easy" };
-  }
-
-  if (/^\d+-\d+'\s*EZ$/.test(t)) {
-    const isLong = text.startsWith(lrTarget + "'");
-    return isLong
-      ? { type: "LONG_RUN", title: "Long Run", mainSet: null, distance: dist, pace: "Easy–moderate" }
-      : { type: "EASY", title: "Easy Run", mainSet: null, distance: dist, pace: "Easy" };
-  }
-
-  return { type: "EASY", title: "Easy Run", mainSet: text, distance: dist, pace: "Easy" };
-}
 
 const FEELINGS = [
   "Felt smooth and controlled the whole way.",
