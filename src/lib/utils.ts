@@ -50,7 +50,10 @@ export function eventsList(events: string | null | undefined): string[] {
 
 export type Paces = {
   ez?: string;
+  // The chart carries two tempo zones, short (LT-1) and medium (LT-2); a
+  // prescription written "@ ST-MT" asks for the range between them.
   tempo?: string;
+  tempoMed?: string;
   k10?: string;
   k8?: string;
   k6?: string;
@@ -59,6 +62,7 @@ export type Paces = {
   mile?: string;
   doubleFreq?: string;
   xtFreq?: string;
+  xtTarget?: string;
 };
 
 export function parsePaces(json: string | null | undefined): Paces | null {

@@ -35,12 +35,45 @@ function raceTitle(t: string): string {
     .replace(/Kick-off/i, "Kick-Off");
 }
 
+// A rep session names its target zone after an "@": "@ ST-MT" (short to medium
+// tempo), "@ 8K/6K", "@ 3K-5K". It has to be read rather than assumed — five
+// minute reps at tempo and one minute reps at 3K are different sessions, and
+// labelling every rep session 3K-5K sends the team out half a minute per mile
+// too fast.
+const REP_ZONES: Record<string, string> = {
+  ST: "Short tempo effort",
+  MT: "Medium tempo effort",
+  "ST-MT": "Short–medium tempo effort",
+  MILE: "Mile effort on reps",
+  GP: "Goal race pace",
+};
+
+function repPace(t: string): string {
+  const zone = (t.match(/@\s*([A-Z0-9]+(?:[-/][A-Z0-9]+)*)/)?.[1] ?? "").replace(/\//g, "-");
+  if (REP_ZONES[zone]) return REP_ZONES[zone];
+  const races = zone.split("-").filter((p) => /^\d+K$/.test(p));
+  return races.length ? `${races.join("–")} effort on reps` : "3K–5K effort on reps";
+}
+
 function woTitle(raw: string): string {
   return raw
     .replace(/\bWO\b/gi, "Workout")
     .split(/\s+/)
     .map((w) => (/[0-9#/"']/.test(w) ? w : w[0].toUpperCase() + w.slice(1).toLowerCase()))
     .join(" ");
+}
+
+/**
+ * The day's PR column (fuel / lift / prehab / recovery) as the note that goes
+ * on every workout that day. Here rather than in seed.ts for the same reason
+ * classify() is: a live-data script needs it, and importing seed.ts would run
+ * the reset.
+ */
+export function prNote(pr: string | undefined): string | null {
+  const bits: string[] = [];
+  if (pr && pr !== "NONE" && pr !== "TRAINING RECAP") bits.push(pr);
+  if (pr && pr.includes("RECAP")) bits.push("Submit your weekly training recap.");
+  return bits.length ? bits.join(" · ") : null;
 }
 
 export type Classified = {
@@ -88,10 +121,13 @@ export function classify(text: string, lrTarget: string): Classified | null {
 
   // Rep sessions, in either shorthand the coach uses: the "EI" ladders
   // ("3X4X40\"/80\"/3' EI") and plain rep prescriptions that lead with the rep
-  // count ("10-12 X 1' @ 3K-5K W/ 1'"). Both are hard 3K-5K work — without the
-  // second pattern these fall through to the easy-run default below.
-  if (/\bEI\b/.test(t) || /^\d+(-\d+)?\s*X\s/.test(t))
-    return { type: "WORKOUT", title: "Interval Workout", mainSet: text, distance: null, pace: "3K–5K effort on reps" };
+  // count ("10-12 X 1' @ 3K-5K W/ 1'"). Without the second pattern these fall
+  // through to the easy-run default below. How hard a rep session is varies, so
+  // the effort comes from the zone it names rather than from a constant.
+  if (/\bEI\b/.test(t) || /^\d+(-\d+)?\s*X\s/.test(t)) {
+    const pace = repPace(t);
+    return { type: "WORKOUT", title: pace.includes("tempo") ? "Tempo Intervals" : "Interval Workout", mainSet: text, distance: null, pace };
+  }
 
   if (t.includes("STRIDES")) {
     const plus = text.indexOf("+");

@@ -7,7 +7,7 @@ import { subHours } from "date-fns";
 // workouts then land on exactly the days the written plan says they do.
 import { dateHelpers, TEAM_TIME_ZONE, workoutInstantForDay } from "../src/lib/date";
 import { ATHLETES, WEEKS } from "./scad-data";
-import { classify } from "./classify";
+import { classify, prNote } from "./classify";
 
 const { startOfDay, isSameDay, subDays } = dateHelpers(TEAM_TIME_ZONE);
 
@@ -101,7 +101,7 @@ async function main() {
         mileageGroup: a.group,
         lrTarget: a.lrTarget,
         ezTarget: a.ezTarget,
-        paces: JSON.stringify({ ...a.paces, doubleFreq: a.doubleFreq, xtFreq: a.xtFreq }),
+        paces: JSON.stringify({ ...a.paces, doubleFreq: a.doubleFreq, xtFreq: a.xtFreq, xtTarget: a.xtTarget }),
         phone: `(404) 555-0${100 + (seed % 900)}`,
         lastReadAnnouncementsAt: subDays(new Date(), 2),
       },
@@ -153,15 +153,12 @@ async function main() {
       const date = new Date(monday.getTime() + d * 24 * 60 * 60 * 1000);
 
       // PR (prehab/recovery/fuel) note for the day
-      const prBits: string[] = [];
-      if (day.PR && day.PR !== "NONE" && day.PR !== "TRAINING RECAP") prBits.push(day.PR);
-      if (day.PR && day.PR.includes("RECAP")) prBits.push("Submit your weekly training recap.");
-      const prNote = prBits.length ? prBits.join(" · ") : null;
+      const notes = prNote(day.PR);
 
-      // group the three cells by identical text
-      const cells: Record<string, string> = { A: day.A, B: day.B, C: day.C };
+      // group the per-group cells by identical text
+      const cells: Record<string, string | undefined> = { A: day.A, B: day.B, C: day.C, D: day.D };
       const byText = new Map<string, string[]>();
-      for (const g of ["A", "B", "C"]) {
+      for (const g of ["A", "B", "C", "D"]) {
         const txt = cells[g];
         if (!txt) continue;
         if (!byText.has(txt)) byText.set(txt, []);
@@ -169,16 +166,21 @@ async function main() {
       }
 
       for (const [txt, groups] of byText) {
+        // The coach writes a row for every group he plans for, which can run
+        // ahead of the roster — D exists on paper before anyone is in it. A
+        // workout nobody is assigned to is just an orphan row, so skip it.
+        const groupAthletes = athletes.filter((a) => groups.includes(a.group));
+        if (!groupAthletes.length) continue;
+
         const c = classify(txt, GROUP_LR[groups[0]] ?? "90-100");
         if (!c) continue;
         const wid = randomUUID();
-        const notes = prNote;
         workoutRows.push({
           id: wid,
           title: c.title,
           date,
           type: c.type,
-          scope: groups.length === 3 ? "TEAM" : "INDIVIDUAL",
+          scope: groupAthletes.length === athletes.length ? "TEAM" : "INDIVIDUAL",
           distance: c.distance,
           mainSet: c.mainSet,
           pace: c.pace,
@@ -187,7 +189,6 @@ async function main() {
           createdById: coach.id,
         });
 
-        const groupAthletes = athletes.filter((a) => groups.includes(a.group));
         for (const a of groupAthletes) {
           const seed = hash(a.id + wid);
           const isPast = date < today;

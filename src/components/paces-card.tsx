@@ -31,7 +31,8 @@ export function PacesCard({
   if (!paces) return null;
   const rows: [string, string | undefined][] = [
     ["Easy", paces.ez],
-    ["Tempo", paces.tempo],
+    ["Tempo (ST)", paces.tempo],
+    ["Tempo (MT)", paces.tempoMed],
     ["10K", paces.k10],
     ["8K", paces.k8],
     ["6K", paces.k6],
@@ -77,7 +78,12 @@ export function PacesCard({
       {(paces.doubleFreq || paces.xtFreq) && (
         <div className="mt-3 flex gap-3 border-t border-paper-200 pt-3 text-xs text-slate-500">
           {paces.doubleFreq && <span>Doubles: <span className="font-medium text-slate-700">{paces.doubleFreq}</span></span>}
-          {paces.xtFreq && <span>Cross-train: <span className="font-medium text-slate-700">{paces.xtFreq}</span></span>}
+          {paces.xtFreq && (
+            <span>
+              Cross-train: <span className="font-medium text-slate-700">{paces.xtFreq}</span>
+              {paces.xtTarget && <span className="text-slate-400"> · {paces.xtTarget} min</span>}
+            </span>
+          )}
         </div>
       )}
     </section>
