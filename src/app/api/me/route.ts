@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { apiError, ok, ApiError, requireUser } from "@/lib/api";
+import { isValidUsername, normalizeUsername } from "@/lib/username";
 import {
   hashPassword,
   verifyPassword,
@@ -23,6 +24,18 @@ export async function PATCH(req: NextRequest) {
       const n = String(b.name).trim();
       if (!n) throw new ApiError(400, "Name can't be empty.");
       data.name = n;
+    }
+    if (b.username !== undefined) {
+      const username = normalizeUsername(b.username);
+      if (!isValidUsername(username)) {
+        throw new ApiError(400, "Usernames are 3-30 characters: letters, numbers, dots, dashes or underscores.");
+      }
+      const dupe = await prisma.user.findFirst({
+        where: { username, id: { not: user.id } },
+        select: { id: true },
+      });
+      if (dupe) throw new ApiError(409, "That username is already taken.");
+      data.username = username;
     }
     if (b.email !== undefined) {
       const email = String(b.email).trim().toLowerCase();

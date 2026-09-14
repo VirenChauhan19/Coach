@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Check, Eye, EyeOff, Loader2 } from "lucide-react";
 import { LogoMark } from "./ui/logo";
 import { Field, FormError } from "./ui/field";
-import { Check, Eye, EyeOff, Loader2 } from "lucide-react";
 import { browserTimeZone } from "./time-zone";
 
 export function SetPasswordForm({ name }: { name: string }) {
@@ -57,27 +57,22 @@ export function SetPasswordForm({ name }: { name: string }) {
   }
 
   return (
-    <div className="flex min-h-app items-center justify-center bg-paper-50 px-5 py-10">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex items-center gap-3">
-          <LogoMark size={40} />
-          <div className="leading-none">
-            <div className="font-display text-lg font-bold uppercase tracking-wide text-ink">
-              SCAD Atlanta
-            </div>
-            <div className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-600">
-              Distance
-            </div>
+    <div className="flex min-h-app items-start justify-center bg-paper px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] sm:items-center sm:py-10">
+      <div className="w-full max-w-[440px] rounded-[28px] border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
+        <div className="mb-7 flex items-center gap-3">
+          <LogoMark size={44} className="rounded-xl" />
+          <div className="leading-tight">
+            <div className="text-base font-semibold text-ink">SCAD Atlanta</div>
+            <div className="text-sm text-slate-500">Distance team</div>
           </div>
         </div>
 
-        <div className="eyebrow text-brand-600">One last step</div>
-        <h2 className="mt-2 font-display text-3xl font-bold uppercase tracking-tight text-ink">
+        <div className="mb-3 inline-flex rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:text-brand-300">One last step</div>
+        <h1 className="text-[30px] font-semibold leading-tight tracking-[-0.04em] text-ink">
           Set your password
-        </h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Welcome, {firstName}. Choose a password only you know to finish setting
-          up your account.
+        </h1>
+        <p className="mt-2 text-sm leading-relaxed text-slate-500">
+          Welcome, {firstName}. Choose a password only you know.
         </p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
@@ -88,7 +83,7 @@ export function SetPasswordForm({ name }: { name: string }) {
               <input
                 id="new-password"
                 type={show ? "text" : "password"}
-                className="input pr-10"
+                className="input min-h-12 rounded-xl pr-12"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="At least 8 characters"
@@ -99,7 +94,7 @@ export function SetPasswordForm({ name }: { name: string }) {
               <button
                 type="button"
                 onClick={() => setShow((s) => !s)}
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600"
+                className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-xl text-slate-500 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
                 aria-label={show ? "Hide password" : "Show password"}
               >
                 {show ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -111,7 +106,7 @@ export function SetPasswordForm({ name }: { name: string }) {
             <input
               id="confirm-password"
               type={show ? "text" : "password"}
-              className="input"
+              className="input min-h-12 rounded-xl"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               placeholder="Re-enter your password"
@@ -120,18 +115,18 @@ export function SetPasswordForm({ name }: { name: string }) {
             />
           </Field>
 
-          <ul className="space-y-1 text-xs">
+          <ul className="space-y-2 rounded-xl bg-slate-50 p-3 text-xs">
             <Requirement met={longEnough}>At least 8 characters</Requirement>
             <Requirement met={matches}>Both passwords match</Requirement>
           </ul>
 
           <button
             type="submit"
-            className="btn-primary w-full"
+            className="btn-primary min-h-12 w-full rounded-xl font-semibold"
             disabled={loading || !longEnough || !matches}
           >
             {loading && <Loader2 size={16} className="animate-spin" />}
-            Set password &amp; continue
+            Set password and continue
           </button>
         </form>
       </div>
@@ -141,11 +136,7 @@ export function SetPasswordForm({ name }: { name: string }) {
 
 function Requirement({ met, children }: { met: boolean; children: React.ReactNode }) {
   return (
-    <li
-      className={
-        "flex items-center gap-1.5 " + (met ? "text-emerald-600" : "text-slate-400")
-      }
-    >
+    <li className={"flex items-center gap-2 " + (met ? "text-emerald-600 dark:text-emerald-400" : "text-slate-500")}>
       <Check size={13} className={met ? "opacity-100" : "opacity-40"} />
       {children}
     </li>

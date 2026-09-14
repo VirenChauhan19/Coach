@@ -30,8 +30,8 @@ export function AthleteNoteEditor({
   return (
     <section className="card p-5">
       <div className="flex items-center gap-2">
-        <span className="h-3.5 w-1 rounded-full bg-brand-500" />
-        <h2 className="font-display text-sm font-semibold uppercase tracking-[0.12em] text-ink">
+        <span className="h-2.5 w-2.5 rounded-full bg-brand-400" />
+        <h2 className="text-base font-semibold text-ink">
           Personal notes
         </h2>
       </div>
@@ -41,7 +41,7 @@ export function AthleteNoteEditor({
       </p>
 
       {total === 0 ? (
-        <p className="mt-4 rounded-lg border border-dashed border-paper-200 bg-paper-50 px-4 py-6 text-center text-sm text-slate-400">
+        <p className="mt-4 rounded-md border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-400">
           No sessions for {athleteFirstName} to annotate yet.
         </p>
       ) : (
@@ -69,10 +69,10 @@ function NoteGroup({
 }) {
   return (
     <div>
-      <p className="mb-1 px-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+      <p className="mb-1 px-0.5 text-xs font-medium text-slate-500">
         {label}
       </p>
-      <ul className="divide-y divide-paper-100">
+      <ul className="divide-y divide-slate-100">
         {items.map((it) => (
           <NoteRow key={it.id} item={it} athleteFirstName={athleteFirstName} />
         ))}
@@ -143,7 +143,7 @@ function NoteRow({
             className="input min-h-[64px] resize-y"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder={`Add a personal note for ${athleteFirstName}…`}
+            placeholder={`Add a personal note for ${athleteFirstName}...`}
             maxLength={1000}
             autoFocus
           />
@@ -153,7 +153,7 @@ function NoteRow({
               type="button"
               onClick={save}
               disabled={saving}
-              className="btn-gold !px-3 !py-1.5 text-xs"
+              className="btn-primary !px-3 !py-1.5 text-xs"
             >
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
               Save note
@@ -172,17 +172,17 @@ function NoteRow({
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="group mt-2 flex w-full items-start gap-2 rounded-lg border border-brand-200 bg-brand-50 p-2.5 text-left transition hover:border-brand-300"
+          className="group mt-2 flex w-full items-start gap-2 rounded-md border border-slate-200 bg-slate-50 p-2.5 text-left transition-colors hover:border-slate-300"
         >
-          <StickyNote size={13} className="mt-0.5 shrink-0 text-brand-700" />
-          <span className="flex-1 text-sm leading-relaxed text-brand-900">{item.note}</span>
-          <Pencil size={13} className="mt-0.5 shrink-0 text-brand-600 opacity-60 group-hover:opacity-100" />
+          <StickyNote size={13} className="mt-0.5 shrink-0 text-slate-500" />
+          <span className="flex-1 text-sm leading-relaxed text-slate-700">{item.note}</span>
+          <Pencil size={13} className="mt-0.5 shrink-0 text-slate-500 opacity-60 group-hover:opacity-100" />
         </button>
       ) : (
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 transition hover:gap-2 hover:text-brand-800"
+          className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-ink underline-offset-4 hover:underline"
         >
           <Plus size={13} /> Add a personal note
         </button>

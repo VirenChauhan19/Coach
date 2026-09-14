@@ -92,16 +92,21 @@ file has sensible defaults for local development.
 
 ### Demo logins
 
-The seed loads the real **SCAD Atlanta Cross Country** roster — 18 athletes in their
-mileage groups (A/B/C) with personal pace targets — and the full **4-phase, 24-week
+The seed loads the real **SCAD Atlanta Cross Country** roster — 19 athletes in their
+mileage groups (A/B/C/D) with personal pace targets — and the full **4-phase, 24-week
 periodized plan** (6/8 → 11/22/2026) from the team's spreadsheet, with each athlete
-placed on their group's workouts. **Password for every account is `password123`.** The
-login screen also has one-click **Coach demo** / **Athlete demo** buttons.
+placed on their group's workouts. **Everyone signs in with a username**, never an email
+address. Straight from the seed the password is `password123`; the login screen also has
+one-click **Coach demo** / **Athlete demo** buttons.
 
-| Role    | Email                |
-| ------- | -------------------- |
-| Coach   | `coach@scadxc.com`   |
-| Athlete | `viren@scadxc.com`   |
+| Role    | Username  |
+| ------- | --------- |
+| Coach   | `coach`   |
+| Athlete | `viren`   |
+
+To hand the real team their own logins, run `npx tsx scripts/set-basic-logins.ts` — it
+prints a username/password sheet (one per person, derived from their name, e.g.
+`viren` / `virenxc2026`) and `--apply` writes it. Anyone can change theirs in Settings.
 
 ---
 
@@ -113,11 +118,10 @@ login screen also has one-click **Coach demo** / **Athlete demo** buttons.
    team** or pick individual runners.
 3. Open **Calendar** to see the color-coded training block; click any day to add a
    session on that date.
-4. Open **Messages** → post a **team announcement**, or pick an athlete to DM.
-5. Open **Athletes** → click a runner to see their mileage group, pace targets, and
+4. Open **Athletes** → click a runner to see their mileage group, pace targets, and
    full feedback history (soreness notes included — visible only to you).
-6. Sign out, then click **Athlete demo** to see the exact same data from a runner's
-   side: today's workout, status buttons, the feedback form, and the coach's messages.
+5. Sign out, then click **Athlete demo** to see the exact same data from a runner's
+   side: today's workout, status buttons, the feedback form, and pace targets.
 
 ---
 
@@ -176,6 +180,18 @@ src/
 > in `src/lib/constants.ts` (the single source of truth).
 
 ---
+
+## Weekly Excel import
+
+Coaches can select **Import Excel week** on their dashboard or Training page. Upload an `.xlsx` workbook (up to 2 MB), select its Monday, review the athlete matches and daily sessions, then choose **Publish week**. Athletes receive the assignments through their existing training schedule and calendar.
+
+The importer supports the existing **Training, 9-14.xlsx** layout: a **Training** sheet with a `WEEK` date range, seven Monday-to-Sunday columns, and labeled A–D group rows, plus a **Pace Chart** with `NAME` and `MILEAGE GROUP` headers. It reads labels rather than fixed row numbers and preserves prescriptions, practice locations/times, staff, lift times, meetings, and PR notes. The selected Monday supplies the year when the heading omits it. Split groups such as `VOL: C, WO: D` use the volume group for easy days and the workout group for quality sessions.
+
+Names match the active team roster by email, full name, or unique first name/initials. Ambiguous names, duplicate chart rows, and unresolved groups such as `TBD-INJ` require an explicit correction or skip before publishing. Weekly group choices do not change saved athlete profiles. Formula-driven assignment cells must be replaced with confirmed values.
+
+**Add sessions** preserves existing sessions and skips identical assignments. **Replace unlogged sessions** replaces pending assignments only for the athletes and days shown; completed/flagged sessions, feedback, and personal coach notes are protected. Publishing rechecks coach access, roster, and schedule in a transaction, and asks for a new preview if the reviewed data changed. Uploads are processed in memory and are not retained as files.
+
+Run `npm run test:imports` for workbook validation, parsing, planning, and database integration checks. Database tests create a fresh, isolated SQLite database in the OS temporary directory.
 
 ## 🔒 Security notes
 

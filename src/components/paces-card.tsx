@@ -43,40 +43,42 @@ export function PacesCard({
   const visible = rows.filter(([, v]) => v);
 
   return (
-    <section className={cn("card p-5", className)}>
-      <div className="mb-3 flex items-center justify-between">
+    <section className={cn("card p-4 sm:p-5", className)}>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-semibold text-ink">
-          <IconStopwatch size={16} strokeWidth={2} className="text-brand-600" /> Pace targets
+          <IconStopwatch size={20} strokeWidth={1.7} className="text-brand-700 dark:text-brand-300" /> Pace targets
         </div>
         <GroupBadge group={group} />
       </div>
 
       {(lrTarget || ezTarget) && (
-        <div className="mb-3 flex gap-2 text-xs">
+        <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
           {lrTarget && (
-            <span className="rounded-md bg-paper-100 px-2 py-1 text-slate-600">
-              Long run <span className="font-semibold text-ink">{lrTarget} min</span>
-            </span>
+            <div className="min-w-0 rounded-xl bg-brand-50 px-3 py-2.5 text-slate-600">
+              <span className="block">Long run</span>
+              <span className="mt-1 block break-words text-sm font-semibold text-ink">{lrTarget} min</span>
+            </div>
           )}
           {ezTarget && (
-            <span className="rounded-md bg-paper-100 px-2 py-1 text-slate-600">
-              Easy <span className="font-semibold text-ink">{ezTarget} min</span>
-            </span>
+            <div className="min-w-0 rounded-xl bg-brand-50 px-3 py-2.5 text-slate-600">
+              <span className="block">Easy run</span>
+              <span className="mt-1 block break-words text-sm font-semibold text-ink">{ezTarget} min</span>
+            </div>
           )}
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+      <div className="grid grid-cols-2 gap-2">
         {visible.map(([label, value]) => (
-          <div key={label} className="flex items-center justify-between border-b border-paper-200 py-1 last:border-0">
-            <span className="text-sm text-slate-500">{label}</span>
-            <span className="font-mono text-sm font-semibold text-ink">{value}</span>
+          <div key={label} className="min-w-0 rounded-xl bg-slate-50 px-2.5 py-2.5 sm:px-3">
+            <span className="block text-xs text-slate-500">{label}</span>
+            <span className="mt-1 block break-words font-mono text-sm font-semibold tracking-tight text-ink">{value}</span>
           </div>
         ))}
       </div>
 
       {(paces.doubleFreq || paces.xtFreq || paces.liftTime) && (
-        <div className="mt-3 flex gap-3 border-t border-paper-200 pt-3 text-xs text-slate-500">
+        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t border-slate-200 pt-3 text-xs leading-relaxed text-slate-500">
           {paces.doubleFreq && <span>Doubles: <span className="font-medium text-slate-700">{paces.doubleFreq}</span></span>}
           {paces.liftTime && (
             <span>
@@ -86,7 +88,7 @@ export function PacesCard({
           {paces.xtFreq && (
             <span>
               Cross-train: <span className="font-medium text-slate-700">{paces.xtFreq}</span>
-              {paces.xtTarget && <span className="text-slate-400"> · {paces.xtTarget} min</span>}
+              {paces.xtTarget && <span className="text-slate-400"> / {paces.xtTarget} min</span>}
             </span>
           )}
         </div>

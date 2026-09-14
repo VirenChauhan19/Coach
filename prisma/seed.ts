@@ -7,12 +7,23 @@ import { subHours } from "date-fns";
 // workouts then land on exactly the days the written plan says they do.
 import { dateHelpers, TEAM_TIME_ZONE, workoutInstantForDay } from "../src/lib/date";
 import { ATHLETES, WEEKS } from "./scad-data";
+import { usernameFromEmail } from "../src/lib/username";
 import { cellForAthlete, classify, prNote, workoutLocation } from "./classify";
 
 const { startOfDay, isSameDay, subDays } = dateHelpers(TEAM_TIME_ZONE);
 
 const prisma = new PrismaClient();
 const DEMO_PASSWORD = "password123";
+
+// The lived-in demo — invented feedback on every past session, a randomised
+// spread of completed/skipped statuses, announcements, DMs, team chat, photos,
+// placeholder phone numbers — is what makes the app worth showing to someone
+// who has never seen it, and noise in front of a team about to log real
+// training. Off by default; SEED_DEMO_CONTENT=1 brings it back.
+//
+//   npm run db:reset                        real plan, nothing logged yet
+//   SEED_DEMO_CONTENT=1 npm run db:reset    the full demo
+const DEMO_CONTENT = process.env.SEED_DEMO_CONTENT === "1";
 
 // ---------- deterministic helpers ----------
 function hash(str: string): number {
@@ -73,6 +84,7 @@ async function main() {
   const coach = await prisma.user.create({
     data: {
       name: "Coach",
+      username: "coach",
       email: "coach@scadxc.com",
       passwordHash,
       role: "COACH",
@@ -94,10 +106,17 @@ async function main() {
     const athlete = await prisma.user.create({
       data: {
         name: a.name,
+        // Everyone signs in by username; the address is just the contact field
+        // it was derived from.
+        username: usernameFromEmail(a.email),
         email: a.email,
         passwordHash,
         role: "ATHLETE",
         teamId: team.id,
+        // Someone who has left the team seeds soft-removed, the same state the
+        // coach's own "remove from roster" leaves them in: history kept, off
+        // every roster, no login.
+        active: a.active ?? true,
         mileageGroup: a.group,
         lrTarget: a.lrTarget,
         ezTarget: a.ezTarget,
@@ -108,8 +127,8 @@ async function main() {
           xtTarget: a.xtTarget,
           liftTime: a.liftTime,
         }),
-        phone: `(404) 555-0${100 + (seed % 900)}`,
-        lastReadAnnouncementsAt: subDays(new Date(), 2),
+        phone: DEMO_CONTENT ? `(404) 555-0${100 + (seed % 900)}` : null,
+        lastReadAnnouncementsAt: DEMO_CONTENT ? subDays(new Date(), 2) : null,
       },
     });
     athletes.push({ ...athlete, group: a.group, workoutGroup: a.workoutGroup, lrTarget: a.lrTarget });
@@ -211,7 +230,9 @@ async function main() {
           let viewedAt: Date | null = null;
           let respondedAt: Date | null = null;
 
-          if (c.type === "REST") {
+          if (!DEMO_CONTENT) {
+            // Nothing has happened yet: every session is simply assigned.
+          } else if (c.type === "REST") {
             status = isPast || isToday ? "VIEWED" : "ASSIGNED";
             viewedAt = isPast || isToday ? subHours(date, -10) : null;
           } else if (isPast) {
@@ -271,7 +292,7 @@ async function main() {
   });
 
   // feedback for completed/skipped/needs-discussion in the past
-  const feedbackRows = assignmentRows
+  const feedbackRows = (DEMO_CONTENT ? assignmentRows : [])
     .filter((a) => ["COMPLETED", "SKIPPED", "NEEDS_DISCUSSION"].includes(a.status))
     .map((a) => {
       const seed = hash(a.id);
@@ -300,128 +321,132 @@ async function main() {
   console.log(`Inserting ${feedbackRows.length} feedback entries...`);
   if (feedbackRows.length) await prisma.feedback.createMany({ data: feedbackRows });
 
-  // ---------- messages ----------
-  console.log("Creating messages...");
-  const byEmail = (e: string) => athletes.find((a) => a.email === e)!;
-  await prisma.message.createMany({
-    data: [
-      {
-        type: "ANNOUNCEMENT",
-        body: "Welcome to Phase 1 — base, no doubles. The goal is consistent, healthy aerobic mileage. Run your easy days truly easy and trust the build. Big season ahead.",
-        teamId: team.id,
-        senderId: coach.id,
-        createdAt: subDays(new Date(), 9),
-      },
-      {
-        type: "ANNOUNCEMENT",
-        body: "Atlanta heat is here. Move easy runs to early AM, carry fluids on anything over 40 minutes, and get your electrolytes in. Listen to your body in the humidity.",
-        teamId: team.id,
-        senderId: coach.id,
-        createdAt: subDays(new Date(), 6),
-      },
-      {
-        type: "ANNOUNCEMENT",
-        body: "Reminder: strides Tuesday/Saturday are smooth and fast, not sprints. Hit your lifts (Day 1 Wed, Day 2 Fri) and core & hip work — that's what keeps you healthy.",
-        teamId: team.id,
-        senderId: coach.id,
-        createdAt: subDays(new Date(), 3),
-      },
-      {
-        type: "ANNOUNCEMENT",
-        body: "Log your feedback after every session — effort, how you felt, any soreness. That's how I fine-tune your group and your paces. Training recap due Sunday.",
-        teamId: team.id,
-        senderId: coach.id,
-        createdAt: subDays(new Date(), 1),
-      },
-    ],
-  });
-
-  async function dm(fromCoach: boolean, athleteId: string, body: string, when: Date, read: boolean) {
-    await prisma.message.create({
-      data: {
-        type: "DIRECT",
-        body,
-        senderId: fromCoach ? coach.id : athleteId,
-        recipientId: fromCoach ? athleteId : coach.id,
-        createdAt: when,
-        readAt: read ? when : null,
-      },
+  // Announcements, coach DMs, the team chat and its photos: all invented,
+  // all only worth having when the point is to show the app off.
+  if (DEMO_CONTENT) {
+    // ---------- messages ----------
+    console.log("Creating messages...");
+    const byEmail = (e: string) => athletes.find((a) => a.email === e)!;
+    await prisma.message.createMany({
+      data: [
+        {
+          type: "ANNOUNCEMENT",
+          body: "Welcome to Phase 1 — base, no doubles. The goal is consistent, healthy aerobic mileage. Run your easy days truly easy and trust the build. Big season ahead.",
+          teamId: team.id,
+          senderId: coach.id,
+          createdAt: subDays(new Date(), 9),
+        },
+        {
+          type: "ANNOUNCEMENT",
+          body: "Atlanta heat is here. Move easy runs to early AM, carry fluids on anything over 40 minutes, and get your electrolytes in. Listen to your body in the humidity.",
+          teamId: team.id,
+          senderId: coach.id,
+          createdAt: subDays(new Date(), 6),
+        },
+        {
+          type: "ANNOUNCEMENT",
+          body: "Reminder: strides Tuesday/Saturday are smooth and fast, not sprints. Hit your lifts (Day 1 Wed, Day 2 Fri) and core & hip work — that's what keeps you healthy.",
+          teamId: team.id,
+          senderId: coach.id,
+          createdAt: subDays(new Date(), 3),
+        },
+        {
+          type: "ANNOUNCEMENT",
+          body: "Log your feedback after every session — effort, how you felt, any soreness. That's how I fine-tune your group and your paces. Training recap due Sunday.",
+          teamId: team.id,
+          senderId: coach.id,
+          createdAt: subDays(new Date(), 1),
+        },
+      ],
     });
-  }
 
-  const viren = byEmail("viren@scadxc.com");
-  const ryan = byEmail("ryan@scadxc.com");
-  const corinne = byEmail("corinne@scadxc.com");
-  const gray = byEmail("gray@scadxc.com");
-  const paige = byEmail("paige@scadxc.com");
+    async function dm(fromCoach: boolean, athleteId: string, body: string, when: Date, read: boolean) {
+      await prisma.message.create({
+        data: {
+          type: "DIRECT",
+          body,
+          senderId: fromCoach ? coach.id : athleteId,
+          recipientId: fromCoach ? athleteId : coach.id,
+          createdAt: when,
+          readAt: read ? when : null,
+        },
+      });
+    }
 
-  // Viren (the demo athlete), last coach message unread
-  await dm(true, viren.id, "Viren, your easy paces looked controlled this week — exactly what I want in Group B. How are the legs feeling?", subDays(new Date(), 4), true);
-  await dm(false, viren.id, "Thanks coach! Feeling good, the 40-50 min runs are settling in.", subHours(subDays(new Date(), 4), -1), true);
-  await dm(true, viren.id, "Good. Keep the easy days easy and we'll sharpen later. Nice work logging your feedback.", subHours(new Date(), 3), false);
+    const viren = byEmail("viren@scadxc.com");
+    const ryan = byEmail("ryan@scadxc.com");
+    const corinne = byEmail("corinne@scadxc.com");
+    const gray = byEmail("gray@scadxc.com");
+    const paige = byEmail("paige@scadxc.com");
 
-  // Ryan (Group A), unread coach message
-  await dm(true, ryan.id, "Ryan, you're in Group A this block — 90-100 long run, 50-60 easy. Build gradually, no hero days early.", subDays(new Date(), 2), false);
+    // Viren (the demo athlete), last coach message unread
+    await dm(true, viren.id, "Viren, your easy paces looked controlled this week — exactly what I want in Group B. How are the legs feeling?", subDays(new Date(), 4), true);
+    await dm(false, viren.id, "Thanks coach! Feeling good, the 40-50 min runs are settling in.", subHours(subDays(new Date(), 4), -1), true);
+    await dm(true, viren.id, "Good. Keep the easy days easy and we'll sharpen later. Nice work logging your feedback.", subHours(new Date(), 3), false);
 
-  // Corinne reaching out, unread for the coach
-  await dm(false, corinne.id, "Coach, I felt a twinge in my left shin on today's run. Should I cross-train tomorrow?", subHours(new Date(), 5), false);
+    // Ryan (Group A), unread coach message
+    await dm(true, ryan.id, "Ryan, you're in Group A this block — 90-100 long run, 50-60 easy. Build gradually, no hero days early.", subDays(new Date(), 2), false);
 
-  // Gray, read exchange about XT
-  await dm(true, gray.id, "Gray, let's add 1-2 cross-training sessions a week to manage load. I'll note it on your plan.", subDays(new Date(), 3), true);
-  await dm(false, gray.id, "Sounds good, will do. Thanks coach.", subHours(subDays(new Date(), 3), -2), true);
+    // Corinne reaching out, unread for the coach
+    await dm(false, corinne.id, "Coach, I felt a twinge in my left shin on today's run. Should I cross-train tomorrow?", subHours(new Date(), 5), false);
 
-  // Paige, unread for coach
-  await dm(false, paige.id, "Coach, can we go over my 5K goal pace before the first meet?", subHours(new Date(), 8), false);
+    // Gray, read exchange about XT
+    await dm(true, gray.id, "Gray, let's add 1-2 cross-training sessions a week to manage load. I'll note it on your plan.", subDays(new Date(), 3), true);
+    await dm(false, gray.id, "Sounds good, will do. Thanks coach.", subHours(subDays(new Date(), 3), -2), true);
 
-  // ---------- team chat (GROUP): makes the app feel lived-in ----------
-  console.log("Creating team chat + photos...");
-  const base = new Date();
-  const ago = (d: number, h = 0) => new Date(base.getTime() - (d * 24 + h) * 3600 * 1000);
+    // Paige, unread for coach
+    await dm(false, paige.id, "Coach, can we go over my 5K goal pace before the first meet?", subHours(new Date(), 8), false);
 
-  const teamChat: [string, string, Date][] = [
-    [coach.id, "Team chat is live. Use it for rides, logistics, and hyping each other up. Keep it positive, big season ahead.", ago(9)],
-    [viren.id, "Driving to the park trail tomorrow at 6:15am, got 2 spots if anyone needs a ride.", ago(7)],
-    [ryan.id, "I'm in, meet you by the dorms.", ago(6, 22)],
-    [corinne.id, "That tempo this morning hurt in the best way 😅 legs are absolutely toast", ago(5)],
-    [gray.id, "XT crew, pool at 4? keeping it easy like coach said", ago(4, 20)],
-    [coach.id, "Yes, easy aqua jog for the cross-training group today. Save the legs for Saturday's long run.", ago(4, 19)],
-    [paige.id, "New racing flats came in, breaking them in on the easy days 👟", ago(4)],
-    [viren.id, "Splits were way more even this week, the pacing talk helped a ton", ago(3)],
-    [coach.id, "Love to see it. Reminder: training recap due Sunday night. Two sentences minimum, be honest about how the body feels.", ago(2, 5)],
-    [ryan.id, "anyone else's calves wrecked from the hill repeats? rolling them out tonight", ago(2, 3)],
-    [corinne.id, "10/10 recommend the massage gun lol", ago(2, 1)],
-    [gray.id, "Carpool for Saturday's meet? trying to sort logistics", ago(1, 2)],
-    [coach.id, "Meet plan goes out tonight. Vans leave 7am sharp, be early. Pin your numbers the night before.", ago(0, 6)],
-    [viren.id, "Let's go 🔥 ready to compete", ago(0, 4)],
-    [paige.id, "so ready. thanks for the goal-pace chat coach, feeling confident", ago(0, 3)],
-  ];
-  for (const [senderId, body, when] of teamChat) {
-    await prisma.message.create({
-      data: { type: "GROUP", body, senderId, teamId: team.id, createdAt: when },
-    });
-  }
+    // ---------- team chat (GROUP): makes the app feel lived-in ----------
+    console.log("Creating team chat + photos...");
+    const base = new Date();
+    const ago = (d: number, h = 0) => new Date(base.getTime() - (d * 24 + h) * 3600 * 1000);
 
-  // ---------- team photos (PHOTOS) ----------
-  function photo(label: string, sub: string, c1: string, c2: string): string {
-    const svg =
-      `<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'>` +
-      `<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>` +
-      `<stop offset='0' stop-color='${c1}'/><stop offset='1' stop-color='${c2}'/></linearGradient></defs>` +
-      `<rect width='900' height='900' fill='url(#g)'/>` +
-      `<text x='50%' y='46%' font-family='Arial, sans-serif' font-size='66' font-weight='bold' fill='white' text-anchor='middle'>${label}</text>` +
-      `<text x='50%' y='55%' font-family='Arial, sans-serif' font-size='30' fill='rgba(255,255,255,0.85)' text-anchor='middle'>${sub}</text></svg>`;
-    return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
-  }
-  const teamPhotos: [string, string, string, Date][] = [
-    [coach.id, "Sunrise long run at the park 🌅", photo("LONG RUN", "Sunrise at the park", "#C8920C", "#13171F"), ago(6)],
-    [viren.id, "Track Tuesday, 6x800 in the books", photo("TRACK TUESDAY", "6 x 800m", "#13171F", "#C8920C"), ago(4)],
-    [corinne.id, "Whole squad before the tempo", photo("THE SQUAD", "Piedmont Park", "#86600C", "#EAB308"), ago(3)],
-    [ryan.id, "Pre-meet shakeout 💪", photo("MEET DAY", "Shakeout + strides", "#0E1117", "#D49A06"), ago(0, 5)],
-  ];
-  for (const [senderId, body, imageUrl, when] of teamPhotos) {
-    await prisma.message.create({
-      data: { type: "PHOTOS", body, imageUrl, senderId, teamId: team.id, createdAt: when },
-    });
+    const teamChat: [string, string, Date][] = [
+      [coach.id, "Team chat is live. Use it for rides, logistics, and hyping each other up. Keep it positive, big season ahead.", ago(9)],
+      [viren.id, "Driving to the park trail tomorrow at 6:15am, got 2 spots if anyone needs a ride.", ago(7)],
+      [ryan.id, "I'm in, meet you by the dorms.", ago(6, 22)],
+      [corinne.id, "That tempo this morning hurt in the best way 😅 legs are absolutely toast", ago(5)],
+      [gray.id, "XT crew, pool at 4? keeping it easy like coach said", ago(4, 20)],
+      [coach.id, "Yes, easy aqua jog for the cross-training group today. Save the legs for Saturday's long run.", ago(4, 19)],
+      [paige.id, "New racing flats came in, breaking them in on the easy days 👟", ago(4)],
+      [viren.id, "Splits were way more even this week, the pacing talk helped a ton", ago(3)],
+      [coach.id, "Love to see it. Reminder: training recap due Sunday night. Two sentences minimum, be honest about how the body feels.", ago(2, 5)],
+      [ryan.id, "anyone else's calves wrecked from the hill repeats? rolling them out tonight", ago(2, 3)],
+      [corinne.id, "10/10 recommend the massage gun lol", ago(2, 1)],
+      [gray.id, "Carpool for Saturday's meet? trying to sort logistics", ago(1, 2)],
+      [coach.id, "Meet plan goes out tonight. Vans leave 7am sharp, be early. Pin your numbers the night before.", ago(0, 6)],
+      [viren.id, "Let's go 🔥 ready to compete", ago(0, 4)],
+      [paige.id, "so ready. thanks for the goal-pace chat coach, feeling confident", ago(0, 3)],
+    ];
+    for (const [senderId, body, when] of teamChat) {
+      await prisma.message.create({
+        data: { type: "GROUP", body, senderId, teamId: team.id, createdAt: when },
+      });
+    }
+
+    // ---------- team photos (PHOTOS) ----------
+    function photo(label: string, sub: string, c1: string, c2: string): string {
+      const svg =
+        `<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'>` +
+        `<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>` +
+        `<stop offset='0' stop-color='${c1}'/><stop offset='1' stop-color='${c2}'/></linearGradient></defs>` +
+        `<rect width='900' height='900' fill='url(#g)'/>` +
+        `<text x='50%' y='46%' font-family='Arial, sans-serif' font-size='66' font-weight='bold' fill='white' text-anchor='middle'>${label}</text>` +
+        `<text x='50%' y='55%' font-family='Arial, sans-serif' font-size='30' fill='rgba(255,255,255,0.85)' text-anchor='middle'>${sub}</text></svg>`;
+      return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+    }
+    const teamPhotos: [string, string, string, Date][] = [
+      [coach.id, "Sunrise long run at the park 🌅", photo("LONG RUN", "Sunrise at the park", "#C8920C", "#13171F"), ago(6)],
+      [viren.id, "Track Tuesday, 6x800 in the books", photo("TRACK TUESDAY", "6 x 800m", "#13171F", "#C8920C"), ago(4)],
+      [corinne.id, "Whole squad before the tempo", photo("THE SQUAD", "Piedmont Park", "#86600C", "#EAB308"), ago(3)],
+      [ryan.id, "Pre-meet shakeout 💪", photo("MEET DAY", "Shakeout + strides", "#0E1117", "#D49A06"), ago(0, 5)],
+    ];
+    for (const [senderId, body, imageUrl, when] of teamPhotos) {
+      await prisma.message.create({
+        data: { type: "PHOTOS", body, imageUrl, senderId, teamId: team.id, createdAt: when },
+      });
+    }
   }
 
   const counts = {
@@ -432,9 +457,10 @@ async function main() {
     messages: await prisma.message.count(),
   };
   console.log("Seed complete:", counts);
-  console.log(`\nDemo logins (password for all: ${DEMO_PASSWORD})`);
-  console.log("  Coach:   coach@scadxc.com");
-  console.log("  Athlete: viren@scadxc.com");
+  console.log(DEMO_CONTENT ? "With demo content: feedback, messages, logged sessions." : "Plan only, nothing logged yet. SEED_DEMO_CONTENT=1 seeds the demo instead.");
+  console.log(`\nLogins (username; password for all: ${DEMO_PASSWORD})`);
+  console.log("  Coach:   coach");
+  console.log("  Athlete: viren");
 }
 
 main()

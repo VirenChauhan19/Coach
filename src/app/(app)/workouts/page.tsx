@@ -4,7 +4,7 @@ import { getCurrentUser, getViewerTimeZone } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { toAssignmentDTO } from "@/lib/dto";
 import { parsePaces } from "@/lib/utils";
-import { WORKOUTS_PAST_DAYS } from "@/lib/query-limits";
+import { WORKOUTS_FUTURE_DAYS, WORKOUTS_PAST_DAYS } from "@/lib/query-limits";
 import { WORKOUT_ORDER, ASSIGNMENT_BY_WORKOUT } from "@/lib/ordering";
 import { CoachWorkouts, type CoachWorkoutRow } from "@/components/coach-workouts";
 import { AthleteWorkouts } from "@/components/athlete-workouts";
@@ -15,22 +15,24 @@ export default async function WorkoutsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const { endOfDay, startOfDay, subDays } = dateHelpers(await getViewerTimeZone());
+  const { addDays, endOfDay, startOfDay, subDays } = dateHelpers(await getViewerTimeZone());
 
   const now = new Date();
   const nowISO = now.toISOString();
 
-  // This screen shows every upcoming session plus an "Earlier" section. Earlier
-  // reaches back WORKOUTS_PAST_DAYS rather than to the beginning of time, so the
-  // list can't grow without bound as seasons pile up. Nothing in the current
-  // history is older than this cutoff.
+  // Workouts is the working list for phones, not the archive. Keep the useful
+  // planning window here and leave full-season browsing to Calendar.
   const historyFrom = subDays(startOfDay(now), WORKOUTS_PAST_DAYS);
+  const historyTo = addDays(endOfDay(now), WORKOUTS_FUTURE_DAYS);
 
   if (user.role === "COACH") {
     // Two independent queries, issued together instead of one after the other.
     const [workouts, athletes] = await Promise.all([
       prisma.workout.findMany({
-        where: { teamId: user.teamId ?? undefined, date: { gte: historyFrom } },
+        where: {
+          teamId: user.teamId ?? undefined,
+          date: { gte: historyFrom, lte: historyTo },
+        },
         include: {
           assignments: {
             where: { athlete: { active: true } },
@@ -76,7 +78,10 @@ export default async function WorkoutsPage() {
   // Athlete
   const [assignmentRows, profile] = await Promise.all([
     prisma.assignment.findMany({
-      where: { athleteId: user.id, workout: { date: { gte: historyFrom } } },
+      where: {
+        athleteId: user.id,
+        workout: { date: { gte: historyFrom, lte: historyTo } },
+      },
       include: { workout: true, feedback: true },
       orderBy: ASSIGNMENT_BY_WORKOUT,
     }),

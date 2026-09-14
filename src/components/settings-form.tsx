@@ -9,7 +9,7 @@ import { Avatar } from "./ui/avatar";
 type SettingsUser = {
   id: string;
   name: string;
-  email: string;
+  username: string | null;
   role: string;
   phone: string | null;
   hometown: string | null;
@@ -35,7 +35,7 @@ export function SettingsForm({
 
   const [profile, setProfile] = useState({
     name: user.name,
-    email: user.email,
+    username: user.username ?? "",
     phone: user.phone ?? "",
     hometown: user.hometown ?? "",
     gradYear: user.gradYear ? String(user.gradYear) : "",
@@ -155,8 +155,14 @@ export function SettingsForm({
               <Field label="Full name">
                 <input className="input" value={profile.name} onChange={(e) => set("name", e.target.value)} />
               </Field>
-              <Field label="Email">
-                <input className="input" type="email" value={profile.email} onChange={(e) => set("email", e.target.value)} />
+              <Field label="Username" hint="What you sign in with.">
+                <input
+                  className="input"
+                  value={profile.username}
+                  onChange={(e) => set("username", e.target.value.toLowerCase().trim())}
+                  autoCapitalize="none"
+                  spellCheck={false}
+                />
               </Field>
               <Field label="Phone">
                 <input className="input" value={profile.phone} onChange={(e) => set("phone", e.target.value)} />
@@ -185,7 +191,7 @@ export function SettingsForm({
               <textarea className="input min-h-[60px] resize-y" value={profile.bio} onChange={(e) => set("bio", e.target.value)} />
             </Field>
             <div className="flex justify-end">
-              <button className="btn-gold" onClick={saveProfile} disabled={pSaving}>
+              <button className="btn-primary" onClick={saveProfile} disabled={pSaving}>
                 {pSaving && <Loader2 size={16} className="animate-spin" />}
                 Save profile
               </button>
@@ -253,7 +259,7 @@ export function SettingsForm({
               </div>
             )}
           </dl>
-          <div className="mt-4 border-t border-paper-200 pt-4">
+          <div className="mt-4 border-t border-slate-200 pt-4">
             <button
               onClick={signOutEverywhere}
               disabled={signingOut}
@@ -268,11 +274,11 @@ export function SettingsForm({
           </div>
         </section>
 
-        <section className="card border-paper-200 bg-paper-50 p-5">
+        <section className="card bg-white p-5">
           <h2 className="text-sm font-semibold text-ink">Privacy</h2>
           <p className="mt-2 text-sm text-slate-600">
-            Your post-workout feedback, soreness notes, and messages are private.
-            Only your coach can see your feedback, never other athletes.
+            Your post-workout feedback and soreness notes are private. Only your
+            coach can see your feedback, never other athletes.
           </p>
         </section>
       </div>

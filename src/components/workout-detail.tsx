@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, MapPin, Route, Gauge } from "lucide-react";
 import type { WorkoutDTO } from "@/lib/dto";
 import { workoutMeta } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -15,9 +15,40 @@ import { cn } from "@/lib/utils";
  */
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+    <div className="text-xs font-medium text-slate-500">
       {children}
     </div>
+  );
+}
+
+/**
+ * The day's note, with the team meeting picked out of it.
+ *
+ * prNote() joins the spreadsheet's prehab/fuel column and the meeting row into
+ * one line ("FUEL + DAY 1 LIFT ... - Team meeting, Men: 8PM"). A meeting is a
+ * time and a place to be, the same kind of fact as the lift slot below it, so
+ * it gets the same weight instead of trailing off the end of a sentence.
+ */
+function Notes({ text }: { text: string }) {
+  const parts = text.split(" · ");
+  return (
+    <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
+      {parts.map((part, i) => {
+        const meeting = part.match(/^Team meeting,\s*(.+)$/i);
+        return (
+          <span key={i}>
+            {i > 0 && " · "}
+            {meeting ? (
+              <>
+                Team meeting <span className="font-semibold text-ink">{meeting[1]}</span>
+              </>
+            ) : (
+              part
+            )}
+          </span>
+        );
+      })}
+    </p>
   );
 }
 
@@ -38,8 +69,13 @@ export function WorkoutDetail({
   const liftsToday = Boolean(liftTime) && /\bLIFT\b/i.test(workout.notes ?? "");
   const meta = workoutMeta(workout.type);
 
-  // Duration, effort and where to be are facts, not features. One line.
-  const facts = [workout.distance, workout.pace, workout.location].filter(Boolean);
+  // Two of these are things you have to act on — how far, and where to be when.
+  // Pace is a target you read once you are out there, so it stays quiet.
+  const facts = [
+    { value: workout.distance, Icon: Route, strong: true },
+    { value: workout.pace, Icon: Gauge, strong: false },
+    { value: workout.location, Icon: MapPin, strong: true },
+  ].filter((fact) => fact.value);
 
   const segments = [
     { label: "Warm-up", value: workout.warmup },
@@ -48,16 +84,16 @@ export function WorkoutDetail({
   ].filter((s) => s.value);
 
   return (
-    <div className={cn("space-y-4", compact && "space-y-3")}>
+    <div className={cn("min-w-0 space-y-4 break-words", compact && "space-y-3")}>
       {facts.length > 0 && (
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600">
-          {facts.map((f, i) => (
-            <span key={f} className="flex items-center gap-2">
-              {i > 0 && <span aria-hidden className="text-slate-300">·</span>}
-              <span className={i === 0 ? "font-semibold text-ink" : undefined}>{f}</span>
+        <div className="flex flex-col gap-2.5 text-sm text-slate-600 sm:flex-row sm:flex-wrap sm:gap-x-5">
+          {facts.map(({ value, Icon, strong }, i) => (
+            <span key={i} className="flex min-w-0 items-start gap-2.5">
+              <Icon aria-hidden="true" size={16} className="mt-0.5 shrink-0 text-slate-400" />
+              <span className={cn("min-w-0", strong && "font-semibold text-ink")}>{value}</span>
             </span>
           ))}
-        </p>
+        </div>
       )}
 
       {segments.length > 0 && (
@@ -88,11 +124,7 @@ export function WorkoutDetail({
 
       {(workout.notes || liftsToday) && (
         <div className="border-t border-ink/[0.07] pt-3">
-          {workout.notes && (
-            <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
-              {workout.notes}
-            </p>
-          )}
+          {workout.notes && <Notes text={workout.notes} />}
           {liftsToday && (
             <p className={cn("text-sm text-slate-600", workout.notes && "mt-1.5")}>
               Your lift <span className="font-semibold text-ink">{liftTime}</span>
@@ -106,7 +138,7 @@ export function WorkoutDetail({
           href={workout.link}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 underline-offset-4 hover:underline"
+          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-ink underline-offset-4 hover:underline"
         >
           <ExternalLink size={14} />
           Attachment

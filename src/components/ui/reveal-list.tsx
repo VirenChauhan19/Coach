@@ -40,7 +40,7 @@ export function RevealList<T>({
           onClick={() => setShown((n) => n + STEP)}
           className={cn(
             "mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed",
-            "border-paper-200 bg-white/60 px-4 py-3 text-sm font-semibold text-slate-700",
+            "border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700",
             "transition hover:border-brand-300 hover:bg-white hover:text-ink active:translate-y-px"
           )}
         >

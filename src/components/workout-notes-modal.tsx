@@ -32,7 +32,7 @@ export function WorkoutNotesModal({
       open={open}
       onClose={onClose}
       title="Personal notes"
-      description={`Private notes for “${workoutTitle}.” Each athlete sees only their own.`}
+      description={`Private notes for "${workoutTitle}". Each athlete sees only their own.`}
       size="lg"
     >
       {rows.length === 0 ? (
@@ -40,7 +40,7 @@ export function WorkoutNotesModal({
           No athletes are assigned to this workout.
         </p>
       ) : (
-        <ul className="divide-y divide-paper-100">
+        <ul className="divide-y divide-slate-100">
           {rows.map((r) => (
             <AthleteNoteRow key={r.id} row={r} />
           ))}
@@ -92,7 +92,7 @@ function AthleteNoteRow({ row }: { row: WorkoutNoteRow }) {
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-paper-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-brand-300 hover:text-brand-700"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-slate-300 hover:text-ink"
           >
             {saved ? (
               <>
@@ -113,7 +113,7 @@ function AthleteNoteRow({ row }: { row: WorkoutNoteRow }) {
             className="input min-h-[60px] resize-y"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder={`Personal note for ${row.name.split(" ")[0]}…`}
+            placeholder={`Personal note for ${row.name.split(" ")[0]}...`}
             maxLength={1000}
             autoFocus
           />
@@ -123,7 +123,7 @@ function AthleteNoteRow({ row }: { row: WorkoutNoteRow }) {
               type="button"
               onClick={save}
               disabled={saving}
-              className="btn-gold !px-3 !py-1.5 text-xs"
+              className="btn-primary !px-3 !py-1.5 text-xs"
             >
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
               Save
@@ -146,10 +146,10 @@ function AthleteNoteRow({ row }: { row: WorkoutNoteRow }) {
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="mt-2 flex w-full items-start gap-2 rounded-lg border border-brand-200 bg-brand-50 p-2.5 text-left transition hover:border-brand-300"
+          className="mt-2 flex w-full items-start gap-2 rounded-md border border-slate-200 bg-slate-50 p-2.5 text-left transition-colors hover:border-slate-300"
         >
-          <StickyNote size={13} className="mt-0.5 shrink-0 text-brand-700" />
-          <span className="flex-1 text-sm leading-relaxed text-brand-900">{saved}</span>
+          <StickyNote size={13} className="mt-0.5 shrink-0 text-slate-500" />
+          <span className="flex-1 text-sm leading-relaxed text-slate-700">{saved}</span>
         </button>
       ) : null}
     </li>

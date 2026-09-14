@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword, setSessionCookie } from "@/lib/auth";
 import { apiError, ok, ApiError } from "@/lib/api";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
+import { emailForUsername, isValidUsername, normalizeUsername } from "@/lib/username";
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,18 +14,23 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const name = String(body.name ?? "").trim();
-    const email = String(body.email ?? "").trim().toLowerCase();
+    // Joining asks for a username, the same thing signing in asks for. An email
+    // is accepted if one is sent, but it is never something a person types.
+    const username = normalizeUsername(body.username ?? body.email ?? "");
     const password = String(body.password ?? "");
 
-    if (!name || !email || !password) {
-      throw new ApiError(400, "Name, email, and password are all required.");
+    if (!name || !username || !password) {
+      throw new ApiError(400, "Name, username, and password are all required.");
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      throw new ApiError(400, "Please enter a valid email address.");
+    if (!isValidUsername(username)) {
+      throw new ApiError(400, "Usernames are 3-30 characters: letters, numbers, dots, dashes or underscores.");
     }
     if (password.length < 8) {
       throw new ApiError(400, "Password must be at least 8 characters.");
     }
+    const email = String(body.email ?? "").includes("@")
+      ? String(body.email).trim().toLowerCase()
+      : emailForUsername(username);
 
     // Role is NEVER taken from the client. The very first account to exist
     // bootstraps the coach; everyone who self-registers afterward is an athlete.
@@ -40,9 +46,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.user.findFirst({
+      where: { OR: [{ username }, { email }] },
+      select: { username: true },
+    });
     if (existing) {
-      throw new ApiError(409, "An account with that email already exists.");
+      throw new ApiError(409, existing.username === username ? "That username is already taken." : "An account with that email already exists.");
     }
 
     const passwordHash = await hashPassword(password);
@@ -52,6 +61,7 @@ export async function POST(req: NextRequest) {
       data: {
         name,
         email,
+        username,
         passwordHash,
         role,
         teamId: team?.id ?? null,

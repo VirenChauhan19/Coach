@@ -38,7 +38,7 @@ export default async function DashboardPage() {
   const teamPromise = user.teamId
     ? prisma.team.findUnique({
         where: { id: user.teamId },
-        select: { name: true, season: true, coach: { select: { name: true } } },
+        select: { name: true, season: true },
       })
     : Promise.resolve(null);
 
@@ -49,9 +49,6 @@ export default async function DashboardPage() {
       profile,
       weekAssignments,
       todayAssignments,
-      latestAnnouncementRow,
-      unreadCount,
-      latestDm,
     ] = await Promise.all([
       teamPromise,
       prisma.user.findUnique({
@@ -71,22 +68,6 @@ export default async function DashboardPage() {
           workout: { date: { gte: todayStart, lte: todayEnd } },
         },
         include: { workout: true, feedback: true },
-      }),
-      user.teamId
-        ? prisma.message.findFirst({
-            where: { type: "ANNOUNCEMENT", teamId: user.teamId },
-            orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-          })
-        : Promise.resolve(null),
-      prisma.message.count({
-        where: { type: "DIRECT", recipientId: user.id, readAt: null },
-      }),
-      prisma.message.findFirst({
-        where: {
-          type: "DIRECT",
-          OR: [{ senderId: user.id }, { recipientId: user.id }],
-        },
-        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       }),
     ]);
 
@@ -145,30 +126,11 @@ export default async function DashboardPage() {
     return (
       <AthleteDashboard
         firstName={user.name.split(" ")[0]}
-        coachName={team?.coach?.name ?? "your coach"}
         nowISO={now.toISOString()}
         today={today}
         weeks={weeks}
         currentWeekIndex={WEEKS_BACK}
         viewIds={viewIds}
-        latestAnnouncement={
-          latestAnnouncementRow
-            ? {
-                body: latestAnnouncementRow.body,
-                createdISO: latestAnnouncementRow.createdAt.toISOString(),
-              }
-            : null
-        }
-        unreadCount={unreadCount}
-        latestMessage={
-          latestDm
-            ? {
-                body: latestDm.body,
-                createdISO: latestDm.createdAt.toISOString(),
-                fromCoach: latestDm.senderId !== user.id,
-              }
-            : null
-        }
         weekStats={weekStats}
         group={profile?.mileageGroup ?? null}
         lrTarget={profile?.lrTarget ?? null}
@@ -189,7 +151,6 @@ export default async function DashboardPage() {
     athleteRows,
     weekAssignments,
     needsDiscussion,
-    unreadMessages,
     todayWorkouts,
     feedbackRows,
     upcomingRows,
@@ -215,9 +176,6 @@ export default async function DashboardPage() {
         athlete: { active: true },
         workout: { teamId, date: { gte: addDays(todayStart, -10) } },
       },
-    }),
-    prisma.message.count({
-      where: { type: "DIRECT", recipientId: user.id, readAt: null },
     }),
     // Today's workouts with completion counts
     prisma.workout.findMany({
@@ -321,7 +279,6 @@ export default async function DashboardPage() {
         athleteCount: athleteRows.length,
         weekCompletionPct,
         needsDiscussion,
-        unreadMessages,
       }}
       today={today}
       roster={roster}

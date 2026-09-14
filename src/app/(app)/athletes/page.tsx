@@ -33,7 +33,7 @@ export default async function AthletesPage() {
       select: {
         id: true,
         name: true,
-        email: true,
+        username: true,
         gradYear: true,
         events: true,
         hometown: true,
@@ -88,7 +88,7 @@ export default async function AthletesPage() {
     return {
       id: a.id,
       name: a.name,
-      email: a.email,
+      username: a.username,
       gradYear: a.gradYear,
       events: a.events,
       hometown: a.hometown,

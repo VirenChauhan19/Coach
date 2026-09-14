@@ -3,17 +3,18 @@
 import { useState } from "react";
 import Link, { useLinkStatus } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Loader2, LogOut, Menu, X } from "lucide-react";
+import { ChevronRight, Loader2, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./ui/avatar";
 import { LogoMark } from "./ui/logo";
+import { ThemeToggle } from "./theme-toggle";
+import { Modal } from "./ui/modal";
 import {
-  IconTrack,
+  IconToday,
   IconCalendar,
-  IconStopwatch,
-  IconChat,
-  IconRunner,
-  IconSliders,
+  IconTraining,
+  IconTeam,
+  IconProfile,
 } from "./ui/icons";
 
 type NavUser = {
@@ -24,119 +25,87 @@ type NavUser = {
 };
 
 const ICONS = {
-  dashboard: IconTrack,
+  dashboard: IconToday,
   calendar: IconCalendar,
-  workouts: IconStopwatch,
-  messages: IconChat,
-  athletes: IconRunner,
-  settings: IconSliders,
+  workouts: IconTraining,
+  athletes: IconTeam,
+  settings: IconProfile,
 } as const;
 
 type NavItem = {
   href: string;
   label: string;
-  kicker: string;
   badge?: number;
   icon: keyof typeof ICONS;
 };
 
 const pageTitle = (pathname: string) => {
   if (pathname.startsWith("/calendar")) return "Calendar";
-  if (pathname.startsWith("/workouts")) return "Workouts";
-  if (pathname.startsWith("/messages")) return "Messages";
-  if (pathname.startsWith("/athletes")) return "Athletes";
-  if (pathname.startsWith("/settings")) return "Settings";
-  return "Dashboard";
+  if (pathname.startsWith("/workouts")) return "Training";
+  if (pathname.startsWith("/athletes")) return "Team";
+  if (pathname.startsWith("/settings")) return "Profile";
+  return "Today";
 };
 
-// Trailing slot for each nav item. Uses Next's pending-navigation state so a
-// spinner appears the instant a link is clicked, the rail feels responsive
-// even while the (remote) database is still resolving the next page.
 function NavTrailing({ active, badge }: { active: boolean; badge?: number }) {
   const { pending } = useLinkStatus();
   if (pending) {
     return (
       <Loader2
-        size={15}
-        className={cn("shrink-0 animate-spin", active ? "text-brand-500" : "text-brand-300")}
+        size={14}
+        className={cn("shrink-0 animate-spin", active ? "text-ink" : "text-slate-400")}
       />
     );
   }
   if (badge) {
     return (
-      <span className="inline-flex min-w-[20px] shrink-0 items-center justify-center rounded-md bg-brand-400 px-1.5 py-0.5 text-[11px] font-bold text-ink">
+      <span className="inline-flex min-w-[20px] shrink-0 items-center justify-center rounded bg-brand-400 px-1.5 py-0.5 text-[11px] font-semibold text-ink">
         {badge > 99 ? "99+" : badge}
       </span>
     );
   }
-  return (
-    <span
-      className={cn(
-        "h-1.5 w-1.5 shrink-0 rounded-full transition-colors",
-        active ? "bg-brand-400" : "bg-transparent group-hover:bg-white/30"
-      )}
-    />
-  );
+  return null;
 }
 
 export function AppShell({
   user,
-  unreadMessages,
   children,
 }: {
   user: NavUser;
-  unreadMessages: number;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [sheetClosing, setSheetClosing] = useState(false);
-
   function openSheet() {
-    setSheetClosing(false);
     setMobileOpen(true);
   }
+
   function closeSheet() {
-    setSheetClosing(true);
-    window.setTimeout(() => {
-      setMobileOpen(false);
-      setSheetClosing(false);
-    }, 230);
+    setMobileOpen(false);
   }
 
   const isCoach = user.role === "COACH";
-  const roleLabel = isCoach ? "Head Coach" : "Athlete";
+  const roleLabel = isCoach ? "Coach" : "Athlete";
 
   const nav: NavItem[] = [
-    { href: "/dashboard", label: "Dashboard", kicker: "Command center", icon: "dashboard" },
-    { href: "/calendar", label: "Calendar", kicker: "Training map", icon: "calendar" },
-    { href: "/workouts", label: "Workouts", kicker: "Plan + log", icon: "workouts" },
-    {
-      href: "/messages",
-      label: "Messages",
-      kicker: "Team comms",
-      icon: "messages",
-      badge: unreadMessages,
-    },
+    { href: "/dashboard", label: "Today", icon: "dashboard" },
+    { href: "/calendar", label: "Calendar", icon: "calendar" },
+    { href: "/workouts", label: "Training", icon: "workouts" },
     ...(isCoach
       ? [
           {
             href: "/athletes",
-            label: "Athletes",
-            kicker: "Roster hub",
+            label: "Team",
             icon: "athletes" as const,
           },
         ]
       : []),
-    { href: "/settings", label: "Settings", kicker: "Profile", icon: "settings" },
+    { href: "/settings", label: "Profile", icon: "settings" },
   ];
 
-  const bottomNav: NavItem[] = nav.slice(0, 4);
   const currentTitle = pageTitle(pathname);
-
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/");
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -145,7 +114,7 @@ export function AppShell({
   }
 
   const NavLinks = ({ onNavigate }: { onNavigate?: () => void }) => (
-    <nav className="space-y-1">
+    <nav aria-label="Team navigation" className="space-y-2">
       {nav.map((item) => {
         const active = isActive(item.href);
         const Icon = ICONS[item.icon];
@@ -156,41 +125,24 @@ export function AppShell({
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "group relative flex items-center gap-3 rounded-lg px-2.5 py-2.5 transition-all duration-200",
+              "group flex min-h-[60px] items-center gap-3.5 rounded-2xl px-3 py-2.5 text-[15px] transition-colors",
               active
-                ? "bg-white text-ink shadow-soft"
-                : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                ? "bg-brand-50 text-ink"
+                : "text-slate-600 hover:bg-slate-50 hover:text-ink"
             )}
           >
-            {/* gold active rail on the left edge */}
             <span
               className={cn(
-                "absolute -left-px top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-brand-400 transition-opacity duration-200",
-                active ? "opacity-100" : "opacity-0 group-hover:opacity-50"
-              )}
-            />
-            <span
-              className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-md transition-colors duration-200",
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] transition-colors",
                 active
-                  ? "bg-ink text-brand-400"
-                  : "bg-white/[0.06] text-slate-400 group-hover:bg-white/[0.1] group-hover:text-brand-300"
+                  ? "bg-brand-300 text-ink-900 shadow-[0_3px_8px_-5px_rgba(144,104,23,0.4)]"
+                  : "text-slate-500 group-hover:bg-white group-hover:text-ink"
               )}
             >
-              <Icon size={18} strokeWidth={active ? 2.3 : 2} />
+              <Icon size={25} />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[13.5px] font-semibold leading-tight">
-                {item.label}
-              </span>
-              <span
-                className={cn(
-                  "mt-0.5 block truncate text-[11px] leading-tight",
-                  active ? "text-slate-400" : "text-slate-500 group-hover:text-slate-400"
-                )}
-              >
-                {item.kicker}
-              </span>
+              <span className={cn("block truncate", active ? "font-semibold" : "font-medium")}>{item.label}</span>
             </span>
             <NavTrailing active={active} badge={item.badge} />
           </Link>
@@ -200,183 +152,123 @@ export function AppShell({
   );
 
   const UserCard = () => (
-    <div className="rounded-lg border border-white/10 bg-white/[0.06] p-3">
-      <div className="flex items-center gap-3">
+    <div className="space-y-3">
+      <Link href="/settings" onClick={closeSheet} className="group flex min-h-16 items-center gap-3 rounded-2xl bg-slate-50 px-3 py-3 transition-colors hover:bg-slate-100">
         <Avatar name={user.name} seed={user.id} size={42} />
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold text-white">{user.name}</div>
-          <div className="truncate text-xs text-slate-400">{roleLabel}</div>
+          <div className="truncate text-sm font-semibold text-ink">{user.name}</div>
+          <div className="mt-0.5 truncate text-xs text-slate-500">{roleLabel} profile</div>
         </div>
+        <ChevronRight size={17} aria-hidden="true" className="shrink-0 text-slate-400" />
+      </Link>
+      <div className="flex items-center justify-between px-1">
         <button
           onClick={logout}
-          className="rounded-md p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+          className="flex min-h-11 items-center justify-center gap-2.5 rounded-xl px-2 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink"
           title="Sign out"
           aria-label="Sign out"
         >
-          <LogOut size={16} />
+          <LogOut size={18} aria-hidden="true" /> Sign out
         </button>
+        <ThemeToggle className="shrink-0 shadow-none" />
       </div>
     </div>
   );
 
   return (
     <div className="min-h-app">
-      {/* Decorative wash. Desktop only: on a phone this is a full-viewport
-          fixed layer the compositor carries through every scroll frame, and the
-          body's own paper gradient already covers that size. */}
-
-      <aside className="fixed inset-y-4 left-4 z-30 hidden w-80 flex-col overflow-hidden rounded-lg border border-white/10 bg-ink lg:flex">
-
-        <div className="relative px-5 pb-4 pt-5">
-          <Link href="/dashboard" className="group flex items-center gap-3">
-            <LogoMark size={40} className="rounded-md ring-1 ring-white/15 transition-transform duration-200 group-hover:scale-105" />
-            <div className="leading-none">
-              <div className="font-display text-[17px] font-bold uppercase tracking-[0.08em] text-white">
-                SCAD Atlanta
-              </div>
-              <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.26em] text-brand-300">
-                Distance Hub
-              </div>
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-slate-200 bg-paper-50 lg:flex">
+        <div className="px-6 pb-6 pt-8">
+          <Link href="/dashboard" className="flex items-center gap-3 rounded-xl">
+            <LogoMark size={44} />
+            <div className="leading-tight">
+              <div className="text-[16px] font-bold tracking-tight text-ink">SCAD Atlanta</div>
+              <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Distance team</div>
             </div>
           </Link>
         </div>
 
-        <div className="relative mx-5 h-px bg-gradient-to-r from-white/15 via-white/10 to-transparent" />
+        <div className="mx-6 border-t border-slate-200" />
 
-        <div className="relative flex-1 overflow-y-auto px-3 py-4 scroll-thin">
-          <p className="mb-2 px-2.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-            Navigation
-          </p>
+        <div className="flex-1 overflow-y-auto px-4 py-6 scroll-thin">
+          <p className="mb-4 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Your team hub</p>
           <NavLinks />
         </div>
 
-        <div className="relative p-3.5">
+        <div className="border-t border-slate-200 p-4">
           <UserCard />
         </div>
       </aside>
 
-      {/* Opaque, not translucent-and-blurred. A backdrop-filter on a sticky bar
-          makes the browser re-blur whatever is passing underneath on every
-          scroll frame, which is the single biggest source of scroll stutter on
-          a phone. This header is lg:hidden, so the blur only ever cost mobile. */}
       <header
-        className="sticky top-0 z-30 border-b border-ink/10 bg-paper px-4 lg:hidden"
+        className="sticky top-0 z-30 border-b border-slate-200/70 bg-paper-50/95 px-4 backdrop-blur-xl dark:border-slate-800 dark:bg-ink-900/95 sm:px-6 lg:hidden"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-[72px] items-center justify-between gap-3">
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <LogoMark size={32} className="rounded-md" />
-            <div className="leading-none">
-              <span className="block font-display text-base font-bold uppercase tracking-[0.08em] text-ink">
-                SCAD Distance
-              </span>
-              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                {currentTitle}
-              </span>
+            <LogoMark size={38} className="rounded-xl" />
+            <div className="leading-tight">
+              <span className="block text-[15px] font-bold tracking-tight text-ink">SCAD Distance</span>
+              <span className="mt-0.5 block text-[11px] font-medium text-slate-500">Atlanta · {currentTitle}</span>
             </div>
           </Link>
-          <button
-            onClick={openSheet}
-            className="rounded-lg border border-ink/10 bg-white p-1.5 shadow-soft"
-            aria-label="Open menu"
-          >
-            <Avatar name={user.name} seed={user.id} size={32} />
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle className="shadow-none" />
+            <button
+              onClick={openSheet}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-200 bg-brand-50"
+              aria-label="Open menu"
+              aria-haspopup="dialog"
+              aria-expanded={mobileOpen}
+            >
+              <Avatar name={user.name} seed={user.id} size={32} />
+            </button>
+          </div>
         </div>
       </header>
 
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className={cn(
-              "absolute inset-0 bg-ink/60 backdrop-blur-sm",
-              sheetClosing ? "animate-fade-out" : "animate-fade-in"
-            )}
-            onClick={closeSheet}
-          />
-          <div
-            className={cn(
-              "absolute inset-x-3 bottom-3 overflow-hidden rounded-lg border border-white/10 bg-ink p-4 shadow-soft",
-              sheetClosing ? "animate-sheet-down" : "animate-sheet-up"
-            )}
-            style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <LogoMark size={34} className="rounded-md" />
-                <div>
-                  <div className="font-display text-base font-bold uppercase text-white">
-                    Team Hub
-                  </div>
-                  <div className="text-xs text-slate-400">{roleLabel}</div>
-                </div>
-              </div>
-              <button
-                onClick={closeSheet}
-                className="rounded-md p-2 text-slate-400 hover:bg-white/10 hover:text-white"
-                aria-label="Close menu"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <NavLinks onNavigate={closeSheet} />
-            <div className="mt-4">
-              <UserCard />
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal open={mobileOpen} onClose={closeSheet} title="Your team hub" description={`SCAD Atlanta · ${roleLabel}`} size="sm">
+        <NavLinks onNavigate={closeSheet} />
+        <div className="mt-5"><UserCard /></div>
+      </Modal>
 
       <div
-        className="fixed inset-x-0 bottom-0 z-30 px-3 lg:hidden"
-        style={{ paddingBottom: "calc(0.7rem + env(safe-area-inset-bottom))" }}
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200/80 bg-paper-50/95 px-3 pt-2 shadow-[0_-8px_28px_-16px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-slate-800 dark:bg-ink-900/95 lg:hidden"
+        style={{ paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))" }}
       >
-        {/* Opaque for the same reason as the header above: this bar is pinned
-            over scrolling content, so a backdrop blur re-runs every frame. */}
-        <nav className="mx-auto flex max-w-md items-stretch gap-1 rounded-lg border border-ink/10 bg-ink p-1.5 shadow-soft">
-          {bottomNav.map((item) => {
+        <nav aria-label="Main navigation" className="mx-auto flex max-w-lg items-stretch gap-1">
+          {nav.map((item) => {
             const Icon = ICONS[item.icon];
             const active = isActive(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "group relative flex flex-1 flex-col items-center justify-center gap-1 rounded-md py-2 text-[10px] font-semibold transition active:scale-95",
-                  active
-                    ? "bg-white text-ink"
-                    : "text-slate-400 hover:bg-white/10 hover:text-white"
+                  "group relative flex min-h-[58px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold transition-colors",
+                  active ? "text-ink" : "text-slate-500 hover:text-ink"
                 )}
               >
-                <Icon
-                  size={20}
-                  strokeWidth={active ? 2.4 : 2}
-                  className={cn(active && "text-brand-500")}
-                />
+                <span className={cn("flex h-9 w-14 items-center justify-center rounded-2xl transition-colors", active ? "bg-brand-300 text-ink-900" : "group-hover:bg-slate-100")}>
+                  <Icon size={24} />
+                </span>
                 <span>{item.label}</span>
                 {item.badge ? (
-                  <span className="absolute right-2 top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-brand-400 px-1 text-[9px] font-bold text-ink">
+                  <span className="absolute right-2 top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-brand-400 px-1 text-[9px] font-semibold text-ink">
                     {item.badge > 9 ? "9+" : item.badge}
                   </span>
                 ) : null}
               </Link>
             );
           })}
-          <button
-            onClick={openSheet}
-            className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md py-2 text-[10px] font-semibold text-slate-400 transition hover:bg-white/10 hover:text-white active:scale-95"
-            aria-label="More"
-          >
-            <Menu size={20} />
-            <span>More</span>
-          </button>
         </nav>
       </div>
 
-      <main className="relative min-h-app lg:pl-[22rem]">
+      <main className="relative min-w-0 lg:min-h-app lg:pl-72">
         <div
           key={pathname}
-          className="mx-auto w-full max-w-[1680px] animate-page-enter px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:py-8 2xl:px-10"
+          className="mx-auto w-full max-w-[1500px] animate-page-enter px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-6 sm:px-6 lg:px-8 lg:py-7"
         >
           {children}
         </div>

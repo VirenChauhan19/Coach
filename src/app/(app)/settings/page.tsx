@@ -20,7 +20,7 @@ export default async function SettingsPage() {
       select: {
         id: true,
         name: true,
-        email: true,
+        username: true,
         role: true,
         phone: true,
         hometown: true,
@@ -48,7 +48,7 @@ export default async function SettingsPage() {
         user={{
           id: user.id,
           name: user.name,
-          email: user.email,
+          username: user.username,
           role: user.role,
           phone: user.phone,
           hometown: user.hometown,

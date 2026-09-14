@@ -1,24 +1,23 @@
-// Bespoke, track-and-field line icons drawn for this program specifically, so the
-// navigation reads as "built by someone who knows running," not a stock icon set.
-// One shared geometry (24x24, rounded 1.9 stroke). Animated sub-parts carry an
-// `ic-*` class; the hover/active motion lives in globals.css and is automatically
-// neutralized by the global prefers-reduced-motion guard.
+import type { AriaAttributes, ReactNode } from "react";
 
-type IconProps = {
+/** A shared, softly filled icon family for the athlete's daily routine. */
+export type IconProps = {
   size?: number;
   strokeWidth?: number;
   className?: string;
-  /** When provided, the icon is exposed to assistive tech with this label. */
+  /** Supplying a title makes an icon accessible when it stands alone. */
   title?: string;
+  "aria-hidden"?: AriaAttributes["aria-hidden"];
 };
 
 function Icon({
   size = 24,
-  strokeWidth = 1.9,
+  strokeWidth = 1.7,
   className,
   title,
+  "aria-hidden": ariaHidden,
   children,
-}: IconProps & { children: React.ReactNode }) {
+}: IconProps & { children: ReactNode }) {
   return (
     <svg
       width={size}
@@ -31,7 +30,8 @@ function Icon({
       strokeLinejoin="round"
       className={className}
       role={title ? "img" : undefined}
-      aria-hidden={title ? undefined : true}
+      aria-hidden={ariaHidden ?? (title ? undefined : true)}
+      focusable="false"
     >
       {title ? <title>{title}</title> : null}
       {children}
@@ -39,95 +39,123 @@ function Icon({
   );
 }
 
-/** Dashboard: a 400m track from above with a lone runner on the back straight. */
-export function IconTrack(props: IconProps) {
+/** A rising sun marks the start of the training day. */
+export function IconToday(props: IconProps) {
   return (
     <Icon {...props}>
-      <rect x="2.5" y="6.5" width="19" height="11" rx="5.5" />
-      <rect x="6.75" y="9.75" width="10.5" height="4.5" rx="2.25" />
-      <path d="M12 6.5v3.25" />
-      <circle className="ic-lap" cx="7" cy="6.5" r="1.15" fill="currentColor" stroke="none" />
+      <path
+        d="M6.5 15.5a5.5 5.5 0 0 1 11 0"
+        fill="currentColor"
+        fillOpacity="0.16"
+      />
+      <path d="M12 3.5v2.25M4.75 6.75l1.6 1.6M19.25 6.75l-1.6 1.6M2.75 15.5h18.5M6.5 19.5h11" />
     </Icon>
   );
 }
 
-/** Calendar: month grid with today blocked out (it nudges up on hover). */
+/** A pocket planner with a simple, legible four-day grid. */
 export function IconCalendar(props: IconProps) {
   return (
     <Icon {...props}>
-      <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
-      <path d="M3.5 9.5h17" />
-      <path d="M8 3.25v3.5M16 3.25v3.5" />
-      <rect
-        className="ic-today"
-        x="7"
-        y="12"
-        width="4"
-        height="3.5"
-        rx="1"
-        fill="currentColor"
-        stroke="none"
-      />
+      <rect x="3.25" y="5" width="17.5" height="15.75" rx="3.25" fill="currentColor" fillOpacity="0.12" />
+      <path d="M3.5 9.5h17M8 3.25v3.5M16 3.25v3.5" />
+      <g fill="currentColor" stroke="none">
+        <rect x="7.5" y="12.5" width="2.5" height="2.5" rx="0.75" />
+        <rect x="14" y="12.5" width="2.5" height="2.5" rx="0.75" fillOpacity="0.55" />
+        <rect x="7.5" y="16.5" width="2.5" height="2.5" rx="0.75" fillOpacity="0.55" />
+        <rect x="14" y="16.5" width="2.5" height="2.5" rx="0.75" fillOpacity="0.55" />
+      </g>
     </Icon>
   );
 }
 
-/** Workouts: a coach's stopwatch; the hand sweeps the dial on hover. */
+/** A running shoe in profile, with a cushioned sole and two lace marks. */
+export function IconTraining(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path
+        d="m3.1 7.25 3.45 4a2.1 2.1 0 0 0 2.6.5l2.25-1.15 4.9 3.25 2.95.85a2.6 2.6 0 0 1 1.9 2.5v1.55a1 1 0 0 1-1 1H3.75a1.5 1.5 0 0 1-1.5-1.5V8.75a1.6 1.6 0 0 1 .85-1.5Z"
+        fill="currentColor"
+        fillOpacity="0.16"
+      />
+      <path d="M2.5 16.5h3.25c2.75 0 3.9 1.5 6.75 1.5H21M11.4 10.75l-1.2 2.1M14.25 12.5l-1.2 1.85" />
+    </Icon>
+  );
+}
+
+/** Two teammates, drawn as full silhouettes instead of a tiny stick figure. */
+export function IconTeam(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="16.75" cy="7.75" r="2.75" fill="currentColor" fillOpacity="0.12" />
+      <path d="M17.5 13.5c2.25.4 3.75 2.25 3.75 4.5v1a1.25 1.25 0 0 1-1.25 1.25h-2.25" fill="currentColor" fillOpacity="0.12" />
+      <circle cx="8.75" cy="7.25" r="3.25" fill="currentColor" fillOpacity="0.16" />
+      <path d="M2.75 19v-.5a6 6 0 0 1 12 0v.5a1.25 1.25 0 0 1-1.25 1.25H4A1.25 1.25 0 0 1 2.75 19Z" fill="currentColor" fillOpacity="0.16" />
+    </Icon>
+  );
+}
+
+/** A personal profile, with the same shoulders and head as the team icon. */
+export function IconProfile(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="7.25" r="3.5" fill="currentColor" fillOpacity="0.16" />
+      <path d="M5 19v-.25a7 6 0 0 1 14 0V19a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19Z" fill="currentColor" fillOpacity="0.16" />
+    </Icon>
+  );
+}
+
+/** An easy-to-read stopwatch for pace and session details. */
 export function IconStopwatch(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M9.5 2.5h5" />
-      <path d="M12 2.5v3.1" />
-      <path d="M18 6l1.3-1.3" />
-      <circle cx="12" cy="13" r="7.25" />
-      <g className="ic-hand">
-        <path d="M12 13l3.4-3" />
-      </g>
-      <circle cx="12" cy="13" r="0.7" fill="currentColor" stroke="none" />
+      <path d="M9.5 2.75h5M12 2.75v2.75M18.25 6.75l1.5-1.5" />
+      <circle cx="12" cy="13.25" r="7.5" fill="currentColor" fillOpacity="0.14" />
+      <path d="M12 9v4.25l2.75 1.5" />
     </Icon>
   );
 }
 
-/** Messages: a speech bubble whose three dots bob like a typing indicator. */
-export function IconChat(props: IconProps) {
+/** A completed step inside a progress ring. */
+export function IconProgress(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M7 5h10a3 3 0 0 1 3 3v4a3 3 0 0 1-3 3h-6l-3.5 3.5V15H7a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3z" />
-      <g className="ic-typing">
-        <circle cx="9" cy="10" r="1" fill="currentColor" stroke="none" />
-        <circle cx="12" cy="10" r="1" fill="currentColor" stroke="none" />
-        <circle cx="15" cy="10" r="1" fill="currentColor" stroke="none" />
-      </g>
+      <circle cx="12" cy="12" r="8.5" fill="currentColor" fillOpacity="0.12" strokeOpacity="0.2" />
+      <path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5" />
+      <path d="m8.25 12 2.5 2.5 5-5" />
     </Icon>
   );
 }
 
-/** Athletes: a runner mid-stride; the trailing leg drives back on hover. */
-export function IconRunner(props: IconProps) {
+/** A warm, rounded conversation bubble for a workout check-in. */
+export function IconFeedback(props: IconProps) {
   return (
     <Icon {...props}>
-      <circle cx="14.7" cy="4.9" r="2" />
-      <path d="M13.4 7.3 11 12" />
-      <path d="M13.7 8.2 16.3 8.8 16.9 11.2" />
-      <path d="M13.1 8 10.3 9.1" />
-      <path d="M11 12 14.2 13.4 14.6 16.6" />
-      <g className="ic-stride">
-        <path d="M11 12 8.4 14 6.9 16.2" />
-      </g>
+      <path
+        d="M7.5 4h9A4.5 4.5 0 0 1 21 8.5v5a4.5 4.5 0 0 1-4.5 4.5h-5L6 21v-3.25A4.5 4.5 0 0 1 3 13.5v-5A4.5 4.5 0 0 1 7.5 4Z"
+        fill="currentColor"
+        fillOpacity="0.14"
+      />
+      <path d="M7.5 9h9M7.5 13h5.5" />
     </Icon>
   );
 }
 
-/** Settings: three sliders whose handles slide on hover. */
-export function IconSliders(props: IconProps) {
+/** A soft leaf for recovery and rest. */
+export function IconRecovery(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M4 7h16M4 12h16M4 17h16" />
-      <g className="ic-sliders">
-        <circle cx="16" cy="7" r="2.3" fill="currentColor" stroke="none" />
-        <circle cx="9" cy="12" r="2.3" fill="currentColor" stroke="none" />
-        <circle cx="15" cy="17" r="2.3" fill="currentColor" stroke="none" />
-      </g>
+      <path
+        d="M20.5 3.5c.75 5.25-.15 10.1-3.55 13.05a7.35 7.35 0 0 1-10.1-.4 6.7 6.7 0 0 1 .05-9.6C10.1 3.4 15.25 4.75 20.5 3.5Z"
+        fill="currentColor"
+        fillOpacity="0.16"
+      />
+      <path d="M3.5 20.5 15 9M8.5 15.5V11" />
     </Icon>
   );
 }
+
+// Existing screens can migrate without losing their named imports.
+export const IconTrack = IconToday;
+export const IconRunner = IconTeam;
+export const IconSliders = IconProfile;

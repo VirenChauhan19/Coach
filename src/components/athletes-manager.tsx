@@ -90,13 +90,13 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
         type="button"
         onClick={() => toggleSort(k)}
         className={cn(
-          "inline-flex items-center gap-1 font-semibold uppercase tracking-[0.1em] transition hover:text-ink",
+          "inline-flex items-center gap-1 font-medium transition-colors hover:text-ink",
           sort.key === k ? "text-ink" : "text-slate-400"
         )}
       >
         {label}
-        <span className="text-[9px]">
-          {sort.key === k ? (sort.dir === 1 ? "▲" : "▼") : "⇅"}
+        <span className="text-[10px]">
+          {sort.key === k ? (sort.dir === 1 ? "A-Z" : "Z-A") : ""}
         </span>
       </button>
     </th>
@@ -108,10 +108,10 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
       <div className="overflow-x-auto scroll-thin">
         <table className="w-full min-w-[680px] text-sm">
           <thead>
-            <tr className="border-b border-paper-200 bg-paper-50 text-left text-[10px]">
+            <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs">
               <SortHead k="name" label="Athlete" />
               <SortHead k="group" label="Group" />
-              <th className="px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-slate-400">
+              <th className="px-3 py-2.5 font-medium text-slate-400">
                 Events
               </th>
               <SortHead k="week" label="This week" />
@@ -119,7 +119,7 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
               <th className="px-3 py-2.5" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-paper-100">
+          <tbody className="divide-y divide-slate-100">
             {sorted.map((a) => {
               const pct = a.weekTotal
                 ? Math.round((a.weekCompleted / a.weekTotal) * 100)
@@ -129,7 +129,7 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
                 <tr
                   key={a.id}
                   onClick={() => router.push(`/athletes/${a.id}`)}
-                  className="cursor-pointer transition hover:bg-paper-50"
+                  className="cursor-pointer transition-colors hover:bg-slate-50"
                 >
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-2.5">
@@ -150,7 +150,7 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
                     {a.mileageGroup ? (
                       <GroupBadge group={a.mileageGroup} />
                     ) : (
-                      <span className="text-slate-300">·</span>
+                      <span className="text-slate-300">-</span>
                     )}
                   </td>
                   <td className="px-3 py-2.5">
@@ -158,7 +158,7 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
                       {evs.slice(0, 2).map((ev) => (
                         <span
                           key={ev}
-                          className="rounded bg-paper-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600"
+                          className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600"
                         >
                           {ev}
                         </span>
@@ -169,13 +169,13 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
                         </span>
                       )}
                       {evs.length === 0 && (
-                        <span className="text-slate-300">·</span>
+                        <span className="text-slate-300">-</span>
                       )}
                     </div>
                   </td>
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-paper-200">
+                      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-200">
                         <div
                           className="h-full rounded-full bg-emerald-500"
                           style={{ width: `${pct}%` }}
@@ -207,7 +207,7 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
                           e.stopPropagation();
                           setEditing(a);
                         }}
-                        className="rounded-md p-1.5 text-slate-400 transition hover:bg-paper-100 hover:text-slate-700"
+                        className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
                         title="Edit"
                       >
                         <Pencil size={15} />
@@ -273,7 +273,7 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
               <div className="flex items-center">
                 <button
                   onClick={() => setEditing(a)}
-                  className="rounded-lg p-2 text-slate-400 transition hover:bg-paper-100 hover:text-slate-700"
+                  className="rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
                   title="Edit"
                 >
                   <Pencil size={15} />
@@ -293,7 +293,7 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
                 {eventsList(a.events).map((ev) => (
                   <span
                     key={ev}
-                    className="rounded-md bg-paper-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600"
+                    className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600"
                   >
                     {ev}
                   </span>
@@ -308,7 +308,7 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
                   {a.weekCompleted}/{a.weekTotal}
                 </span>
               </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-paper-200">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
                 <div
                   className="h-full rounded-full bg-emerald-500 transition-[width] duration-700 ease-out"
                   style={{ width: `${pct}%` }}
@@ -316,7 +316,7 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
               </div>
             </div>
 
-            <div className="mt-3 flex items-center justify-between border-t border-paper-200 pt-3">
+            <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
               <div className="flex items-center gap-2 text-xs text-slate-400">
                 {a.needsDiscussion > 0 ? (
                   <span className="inline-flex items-center gap-1 font-medium text-rose-600">
@@ -349,13 +349,13 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
           {athletes.length} athlete{athletes.length === 1 ? "" : "s"} on the roster
         </p>
         <div className="flex items-center gap-2">
-          <div className="hidden rounded-lg border border-paper-200 bg-paper-50 p-0.5 sm:inline-flex">
+          <div className="hidden rounded-md border border-slate-200 bg-slate-50 p-0.5 sm:inline-flex">
             <button
               onClick={() => setView("table")}
               className={cn(
                 "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition",
                 view === "table"
-                  ? "bg-ink text-white shadow-sm"
+                  ? "bg-white text-ink shadow-card"
                   : "text-slate-500 hover:text-ink"
               )}
             >
@@ -366,14 +366,14 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
               className={cn(
                 "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition",
                 view === "cards"
-                  ? "bg-ink text-white shadow-sm"
+                  ? "bg-white text-ink shadow-card"
                   : "text-slate-500 hover:text-ink"
               )}
             >
               <LayoutGrid size={14} /> Cards
             </button>
           </div>
-          <button className="btn-gold" onClick={() => setAddOpen(true)}>
+          <button className="btn-primary" onClick={() => setAddOpen(true)}>
             <UserPlus size={16} /> Add athlete
           </button>
         </div>
@@ -384,7 +384,7 @@ export function AthletesManager({ athletes }: { athletes: RosterAthlete[] }) {
           title="No athletes yet"
           description="Add your runners to start assigning workouts and tracking feedback."
           action={
-            <button className="btn-gold" onClick={() => setAddOpen(true)}>
+            <button className="btn-primary" onClick={() => setAddOpen(true)}>
               <UserPlus size={16} /> Add athlete
             </button>
           }

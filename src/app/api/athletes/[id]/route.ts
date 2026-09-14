@@ -14,6 +14,7 @@ async function loadTeamAthlete(id: string, teamId: string | null) {
   }
   return athlete;
 }
+import { isValidUsername, normalizeUsername } from "@/lib/username";
 
 export async function PATCH(
   req: NextRequest,
@@ -42,6 +43,18 @@ export async function PATCH(
       });
       if (dupe) throw new ApiError(409, "That email is already in use.");
       data.email = email;
+    }
+    if (b.username !== undefined) {
+      const username = normalizeUsername(b.username);
+      if (!isValidUsername(username)) {
+        throw new ApiError(400, "Usernames are 3-30 characters: letters, numbers, dots, dashes or underscores.");
+      }
+      const dupe = await prisma.user.findFirst({
+        where: { username, id: { not: id } },
+        select: { id: true },
+      });
+      if (dupe) throw new ApiError(409, "That username is already taken.");
+      data.username = username;
     }
     if (b.gradYear !== undefined) {
       const g = parseInt(String(b.gradYear), 10);

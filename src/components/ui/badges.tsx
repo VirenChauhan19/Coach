@@ -25,7 +25,7 @@ function Marker({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500",
+        "inline-flex items-center gap-1.5 text-xs font-medium text-slate-600",
         className
       )}
     >

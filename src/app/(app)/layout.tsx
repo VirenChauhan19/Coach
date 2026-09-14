@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, getViewerTimeZone, getSessionTimeZone } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/app-shell";
 import { TimeZoneProvider, TimeZoneSync } from "@/components/time-zone";
 
@@ -24,25 +23,6 @@ export default async function AppLayout({
     getSessionTimeZone(),
   ]);
 
-  // Run both counts concurrently so the shell that wraps every page adds one
-  // round-trip of latency, not two.
-  const [unreadDms, unreadAnnouncements] = await Promise.all([
-    prisma.message.count({
-      where: { type: "DIRECT", recipientId: user.id, readAt: null },
-    }),
-    user.role !== "COACH" && user.teamId
-      ? prisma.message.count({
-          where: {
-            type: "ANNOUNCEMENT",
-            teamId: user.teamId,
-            ...(user.lastReadAnnouncementsAt
-              ? { createdAt: { gt: user.lastReadAnnouncementsAt } }
-              : {}),
-          },
-        })
-      : Promise.resolve(0),
-  ]);
-
   return (
     <TimeZoneProvider zone={zone}>
       <TimeZoneSync sessionZone={sessionZone} />
@@ -53,7 +33,6 @@ export default async function AppLayout({
           email: user.email,
           role: user.role,
         }}
-        unreadMessages={unreadDms + unreadAnnouncements}
       >
         {children}
       </AppShell>

@@ -1,19 +1,11 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
-import { Inter, Oswald } from "next/font/google";
+import { Inter } from "next/font/google";
 import { FirebaseAnalytics } from "@/components/firebase-analytics";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
-  display: "swap",
-});
-
-// Condensed athletic display face for headings, the wordmark, and stat numbers.
-const oswald = Oswald({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  variable: "--font-display",
   display: "swap",
 });
 
@@ -40,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${oswald.variable}`}>
+    <html lang="en" className={inter.variable}>
       <body className="min-h-app font-sans">
         {/* Dev only: unregister any stale service worker left on this origin
             (a common localhost cause of weird caching) and drop its caches.

@@ -2,17 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
-  CheckCircle2,
   Loader2,
   Pencil,
   Plus,
   StickyNote,
   Trash2,
-  User,
-  Users,
+  Upload,
 } from "lucide-react";
-import { IconStopwatch, IconCalendar, IconRunner } from "./ui/icons";
+import { IconProfile, IconProgress, IconTeam, IconToday, IconTraining } from "./ui/icons";
 import { WorkoutFormModal, type WorkoutInitial } from "./workout-form-modal";
 import { WorkoutNotesModal } from "./workout-notes-modal";
 import { Portal } from "./ui/portal";
@@ -27,6 +26,8 @@ import { cn } from "@/lib/utils";
 import { useDates } from "./time-zone";
 import { compareWorkouts, compareWorkoutsDesc } from "@/lib/ordering";
 
+const WorkoutImportModal = dynamic(() => import("./workout-import-modal").then((module) => module.WorkoutImportModal), { ssr: false });
+
 export type CoachWorkoutRow = WorkoutInitial & {
   total: number;
   completed: number;
@@ -40,26 +41,24 @@ function MetricTile({
   suffix,
   detail,
 }: {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
   label: string;
   value: number;
   suffix?: string;
   detail: string;
 }) {
   return (
-    <div className="rounded-lg border border-ink/10 bg-white p-4 shadow-soft">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-          {label}
-        </span>
-        <span className="flex h-8 w-8 items-center justify-center rounded-md bg-ink text-brand-400">
-          <Icon size={16} />
+    <div className="card flex min-w-0 items-center justify-between gap-2 px-3 py-2.5 sm:block sm:p-4" title={detail}>
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <span className="text-xs font-medium text-slate-500 sm:text-sm">{label}</span>
+        <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 sm:flex">
+          <Icon size={22} strokeWidth={1.7} />
         </span>
       </div>
-      <div className="mt-3 font-display text-4xl font-bold leading-none text-ink">
+      <div className="shrink-0 text-xl font-semibold tracking-tight text-ink sm:mt-2 sm:text-3xl">
         <CountUp value={value} suffix={suffix} />
       </div>
-      <p className="mt-1.5 text-xs text-slate-500">{detail}</p>
+      <p className="sr-only text-xs text-slate-500 sm:not-sr-only sm:mt-1">{detail}</p>
     </div>
   );
 }
@@ -67,25 +66,15 @@ function MetricTile({
 function SectionHeader({
   title,
   count,
-  muted = false,
 }: {
   title: string;
   count: number;
-  muted?: boolean;
 }) {
   return (
-    <div className="mb-3 flex items-center justify-between border-b border-paper-200 pb-2">
-      <h2 className="flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-[0.12em] text-ink">
-        <span
-          className={cn(
-            "h-3.5 w-1 rounded-full",
-            muted ? "bg-slate-300" : "bg-brand-500"
-          )}
-        />
-        {title}
-      </h2>
-      <span className="font-mono text-[11px] text-slate-400">
-        {String(count).padStart(2, "0")}
+    <div className="mb-3 hidden items-center justify-between border-b border-slate-200 pb-2 sm:flex">
+      <h2 className="text-base font-semibold text-ink">{title}</h2>
+      <span className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-xs text-slate-500">
+        {count}
       </span>
     </div>
   );
@@ -103,10 +92,12 @@ export function CoachWorkouts({
   const { format, smartDayLabel } = useDates();
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState<CoachWorkoutRow | null>(null);
   const [deleting, setDeleting] = useState<CoachWorkoutRow | null>(null);
   const [notesFor, setNotesFor] = useState<CoachWorkoutRow | null>(null);
   const [busy, setBusy] = useState(false);
+  const [mobileTab, setMobileTab] = useState<"upcoming" | "past">("upcoming");
 
   const nameById = useMemo(
     () => new Map(athletes.map((a) => [a.id, a.name])),
@@ -131,9 +122,7 @@ export function CoachWorkouts({
   const completionPct = assignedTotal
     ? Math.round((completedTotal / assignedTotal) * 100)
     : 0;
-  const todayCount = workouts.filter(
-    (w) => format(w.dateISO, "yyyy-MM-dd") === todayKey
-  ).length;
+  const todayCount = workouts.filter((w) => format(w.dateISO, "yyyy-MM-dd") === todayKey).length;
   const nextWorkout = upcoming[0];
   const typeCounts = WORKOUT_TYPE_ORDER.map((type) => ({
     type,
@@ -162,76 +151,62 @@ export function CoachWorkouts({
     );
 
     return (
-      <article className="group overflow-hidden rounded-lg border border-paper-200 bg-white shadow-soft transition hover:-translate-y-0.5 hover:border-ink/20">
-        <div className="grid gap-0 sm:grid-cols-[92px_1fr]">
-          <div className={cn("flex items-center gap-3 p-4 text-white sm:block", meta.bar)}>
-            <div className="rounded-md bg-white/15 px-3 py-2 text-center shadow-[inset_0_1px_0_rgb(255_255_255_/_0.22)]">
-              <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] opacity-80">
+      <article className="card min-w-0 p-4 sm:p-5">
+        <div className="grid gap-4 lg:grid-cols-[1fr_220px] lg:items-center">
+          <div className="grid min-w-0 grid-cols-[3rem_minmax(0,1fr)] items-start gap-x-3 sm:grid-cols-[4rem_minmax(0,1fr)] sm:gap-x-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 py-2 text-center">
+              <span className="block text-xs font-medium text-slate-500">
                 {format(w.dateISO, "MMM")}
               </span>
-              <span className="block font-display text-4xl font-bold leading-none">
+              <span className="block text-2xl font-semibold leading-tight text-ink">
                 {format(w.dateISO, "d")}
               </span>
-              <span className="block text-[11px] opacity-80">
+              <span className="block text-xs text-slate-500">
                 {format(w.dateISO, "EEE")}
               </span>
             </div>
-            <div className="sm:hidden">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">
-                {smartDayLabel(w.dateISO)}
-              </p>
-              <p className="mt-0.5 text-sm font-semibold">{w.title}</p>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", meta.dot)} />
+                <h3 className="min-w-0 flex-1 break-words text-base font-semibold leading-snug text-ink">{w.title}</h3>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <TypeBadge type={w.type} />
+                <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                  {w.scope === "INDIVIDUAL" ? <IconProfile size={12} strokeWidth={1.7} /> : <IconTeam size={12} strokeWidth={1.7} />}
+                  {w.scope === "INDIVIDUAL"
+                    ? `${w.athleteIds.length} athlete${w.athleteIds.length === 1 ? "" : "s"}`
+                    : "Team"}
+                </span>
+              </div>
+
+              <div className="mt-2 text-sm text-slate-500">{smartDayLabel(w.dateISO)}</div>
             </div>
-          </div>
-
-          <div className="grid gap-4 p-4 lg:grid-cols-[1fr_180px] lg:items-center lg:p-5">
-            <div className="min-w-0">
-              <div className="hidden flex-wrap items-center gap-2 sm:flex">
-                <h3 className="truncate text-lg font-bold text-ink">{w.title}</h3>
-                <TypeBadge type={w.type} />
-                <span className="inline-flex items-center gap-1 rounded bg-paper-100 px-2 py-0.5 text-xs font-medium text-slate-500">
-                  {w.scope === "INDIVIDUAL" ? <User size={12} /> : <Users size={12} />}
-                  {w.scope === "INDIVIDUAL"
-                    ? `${w.athleteIds.length} athlete${w.athleteIds.length === 1 ? "" : "s"}`
-                    : "Team"}
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:mt-2 sm:hidden">
-                <TypeBadge type={w.type} />
-                <span className="inline-flex items-center gap-1 rounded bg-paper-100 px-2 py-0.5 text-xs font-medium text-slate-500">
-                  {w.scope === "INDIVIDUAL" ? <User size={12} /> : <Users size={12} />}
-                  {w.scope === "INDIVIDUAL"
-                    ? `${w.athleteIds.length} athlete${w.athleteIds.length === 1 ? "" : "s"}`
-                    : "Team"}
-                </span>
-              </div>
-
+            <div className="col-span-2 min-w-0 sm:col-span-1 sm:col-start-2">
               <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
                 {summary.length > 0 ? (
                   summary.map((item, index) => (
-                    <span
-                      key={`${item}-${index}`}
-                      className="rounded-md border border-paper-200 bg-paper-50 px-2 py-1"
-                    >
+                    <span key={`${item}-${index}`} className="max-w-full break-words rounded-lg bg-slate-50 px-2.5 py-1.5">
                       {item}
                     </span>
                   ))
                 ) : (
-                  <span className="rounded-md border border-paper-200 bg-paper-50 px-2 py-1">
+                  <span className="rounded border border-slate-200 bg-white px-2 py-1">
                     No distance set
                   </span>
                 )}
               </div>
 
               {w.mainSet && (
-                <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-slate-600">
+                <p className="mt-3 line-clamp-2 break-words text-sm leading-relaxed text-slate-600">
                   {w.mainSet}
                 </p>
               )}
 
               {w.scope === "INDIVIDUAL" && w.athleteIds.length > 0 && (
                 <div className="mt-3 flex items-center gap-2">
-                  <div className="flex -space-x-1.5">
+                  <div className="flex shrink-0 -space-x-1.5">
                     {w.athleteIds.slice(0, 5).map((id) => (
                       <span key={id} className="rounded-full ring-2 ring-white">
                         <Avatar name={nameById.get(id) ?? "?"} seed={id} size={22} />
@@ -244,56 +219,52 @@ export function CoachWorkouts({
                 </div>
               )}
             </div>
+          </div>
 
-            <div className="flex items-center justify-between gap-3 lg:block">
-              {!isRest ? (
-                <div>
-                  <div className="flex items-end justify-between gap-3">
-                    <span className="font-display text-3xl font-bold leading-none text-ink">
-                      {pct}%
-                    </span>
-                    <span className="pb-1 text-xs text-slate-500">
-                      {w.completed}/{w.total} done
-                    </span>
-                  </div>
-                  <AnimatedBar value={pct} className="mt-2" barClassName="bg-brand-500" />
+          <div className="border-t border-slate-100 pt-4 lg:border-0 lg:pt-0">
+            {!isRest ? (
+              <div>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="font-medium text-ink">{pct}%</span>
+                  <span className="text-slate-500">{w.completed}/{w.total} done</span>
                 </div>
-              ) : (
-                <span className="rounded-md bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-500">
-                  Recovery day
-                </span>
-              )}
-
-              <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 lg:mt-4">
-                {w.assignmentNotes.length > 0 && (
-                  <button
-                    onClick={() => setNotesFor(w)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-700 transition hover:border-brand-300 hover:bg-brand-100"
-                    aria-label={`Personal notes for ${w.title}`}
-                  >
-                    <StickyNote size={15} /> Notes
-                    {notesCount > 0 && (
-                      <span className="ml-0.5 rounded bg-brand-500 px-1.5 text-[10px] font-bold text-white">
-                        {notesCount}
-                      </span>
-                    )}
-                  </button>
-                )}
-                <button
-                  onClick={() => setEditing(w)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-paper-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-ink/20 hover:text-ink"
-                  aria-label={`Edit ${w.title}`}
-                >
-                  <Pencil size={15} /> Edit
-                </button>
-                <button
-                  onClick={() => setDeleting(w)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-paper-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
-                  aria-label={`Delete ${w.title}`}
-                >
-                  <Trash2 size={15} /> Delete
-                </button>
+                <AnimatedBar value={pct} className="mt-2" barClassName="bg-emerald-500" />
               </div>
+            ) : (
+              <span className="inline-flex rounded bg-slate-100 px-2.5 py-1.5 text-xs font-medium text-slate-600">
+                Recovery day
+              </span>
+            )}
+
+            <div className="mt-4 flex flex-wrap items-center gap-2 lg:justify-end">
+              {w.assignmentNotes.length > 0 && (
+                <button
+                  onClick={() => setNotesFor(w)}
+                  className="btn-outline min-h-11 flex-1 !px-2.5 text-xs sm:flex-none"
+                  aria-label={`Personal notes for ${w.title}`}
+                >
+                  <StickyNote size={14} /> Notes
+                  {notesCount > 0 && (
+                    <span className="rounded bg-brand-400 px-1.5 text-[10px] font-semibold text-ink">
+                      {notesCount}
+                    </span>
+                  )}
+                </button>
+              )}
+              <button
+                onClick={() => setEditing(w)}
+                className="btn-outline min-h-11 flex-1 !px-2.5 text-xs sm:flex-none"
+                aria-label={`Edit ${w.title}`}
+              >
+                <Pencil size={14} /> Edit
+              </button>
+              <button
+                onClick={() => setDeleting(w)}
+                className="btn-outline min-h-11 flex-1 !px-2.5 text-xs hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 sm:flex-none"
+                aria-label={`Delete ${w.title}`}
+              >
+                <Trash2 size={14} /> Delete
+              </button>
             </div>
           </div>
         </div>
@@ -302,131 +273,58 @@ export function CoachWorkouts({
   };
 
   return (
-    <div className="space-y-8">
-      <section className="overflow-hidden rounded-lg border border-ink/10 bg-ink text-white shadow-soft">
-        <div className="relative grid min-h-[300px] lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgb(234_179_8_/_0.24),transparent_30%),linear-gradient(135deg,rgb(255_255_255_/_0.12),transparent_38%)]" />
-          <div className="relative flex flex-col justify-between p-6 sm:p-8">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-300">
-                Workout command center
-              </p>
-              <h1 className="mt-3 font-display text-5xl font-bold uppercase leading-[0.9] tracking-tight text-white sm:text-6xl xl:text-7xl">
-                Workouts
-              </h1>
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
-                Build the week, assign the right athletes, and keep completion visible
-                without digging through individual sessions.
-              </p>
-            </div>
-            <div className="mt-6 flex flex-wrap items-center gap-2">
-              <button className="btn-gold" onClick={() => setCreateOpen(true)}>
-                <Plus size={16} /> New workout
-              </button>
-              <span className="rounded-md border border-white/10 bg-white/[0.07] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
-                {format(nowISO, "EEEE, MMM d")}
-              </span>
-            </div>
+    <div className="space-y-4 sm:space-y-6">
+      <section className="card border-brand-200 bg-brand-50 p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-700">Training planner</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+              Workouts
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {format(nowISO, "EEEE, MMM d")} · {workouts.length} sessions
+            </p>
           </div>
-
-          <div className="relative border-t border-white/10 bg-white/[0.06] p-5 backdrop-blur lg:border-l lg:border-t-0 lg:p-6">
-            <div className="flex h-full flex-col justify-between rounded-lg border border-white/10 bg-ink-900/45 p-5">
-              <div>
-                <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300">
-                    Next session
-                  </span>
-                  <span className="h-2 w-2 rounded-full bg-brand-400" />
-                </div>
-                {nextWorkout ? (
-                  <>
-                    <TypeBadge
-                      type={nextWorkout.type}
-                      className="bg-white/[0.08] text-white ring-white/15"
-                    />
-                    <h2 className="mt-3 font-display text-3xl font-bold uppercase leading-none text-white">
-                      {nextWorkout.title}
-                    </h2>
-                    <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                      <span className="rounded-md border border-white/10 bg-white/[0.07] px-3 py-2 text-slate-200">
-                        {smartDayLabel(nextWorkout.dateISO)}
-                      </span>
-                      <span className="rounded-md border border-white/10 bg-white/[0.07] px-3 py-2 text-slate-200">
-                        {nextWorkout.scope === "INDIVIDUAL"
-                          ? `${nextWorkout.athleteIds.length} assigned`
-                          : "Full team"}
-                      </span>
-                    </div>
-                    {nextWorkout.mainSet && (
-                      <p className="mt-4 line-clamp-3 text-sm leading-relaxed text-slate-300">
-                        {nextWorkout.mainSet}
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm text-slate-300">
-                    No future workout is scheduled. Create the next session to start
-                    filling this board.
-                  </p>
-                )}
-              </div>
-              <div className="mt-5 grid grid-cols-3 gap-2">
-                <div className="rounded-md bg-white/[0.07] p-3">
-                  <div className="font-display text-2xl font-bold text-white">
-                    <CountUp value={upcoming.length} />
-                  </div>
-                  <div className="text-[10px] uppercase tracking-wide text-slate-400">
-                    Upcoming
-                  </div>
-                </div>
-                <div className="rounded-md bg-white/[0.07] p-3">
-                  <div className="font-display text-2xl font-bold text-white">
-                    <CountUp value={todayCount} />
-                  </div>
-                  <div className="text-[10px] uppercase tracking-wide text-slate-400">
-                    Today
-                  </div>
-                </div>
-                <div className="rounded-md bg-white/[0.07] p-3">
-                  <div className="font-display text-2xl font-bold text-white">
-                    <CountUp value={completionPct} suffix="%" />
-                  </div>
-                  <div className="text-[10px] uppercase tracking-wide text-slate-400">
-                    Done
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <button className="btn-primary shrink-0 self-start" onClick={() => setCreateOpen(true)} aria-label="New workout">
+            <Plus size={16} /> <span className="sm:hidden">New</span><span className="hidden sm:inline">New workout</span>
+          </button>
         </div>
+
+        <button className="btn-outline mt-4 min-h-12 w-full sm:w-auto" onClick={() => setImportOpen(true)}>
+          <Upload size={18} strokeWidth={1.7} /> Import Excel week
+        </button>
+
+        {nextWorkout && (
+          <div className="mt-4 hidden rounded-xl border border-brand-200/70 bg-white p-4 sm:block">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <div className="mb-1 flex items-center gap-2">
+                  <span className={cn("h-2.5 w-2.5 rounded-full", workoutMeta(nextWorkout.type).dot)} />
+                  <span className="text-sm font-medium text-slate-500">Next session</span>
+                </div>
+                <h2 className="break-words text-lg font-semibold leading-snug text-ink">{nextWorkout.title}</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  {smartDayLabel(nextWorkout.dateISO)} ·{" "}
+                  {nextWorkout.scope === "INDIVIDUAL"
+                    ? `${nextWorkout.athleteIds.length} assigned`
+                    : "Full team"}
+                </p>
+              </div>
+              {nextWorkout.mainSet && (
+                <p className="line-clamp-2 max-w-xl break-words text-sm leading-relaxed text-slate-600 sm:line-clamp-none">
+                  {nextWorkout.mainSet}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricTile
-          icon={IconStopwatch}
-          label="Upcoming"
-          value={upcoming.length}
-          detail="sessions ahead"
-        />
-        <MetricTile
-          icon={IconCalendar}
-          label="Today"
-          value={todayCount}
-          detail="on the calendar"
-        />
-        <MetricTile
-          icon={CheckCircle2}
-          label="Complete"
-          value={completionPct}
-          suffix="%"
-          detail={`${completedTotal}/${assignedTotal} assignments`}
-        />
-        <MetricTile
-          icon={IconRunner}
-          label="Athletes"
-          value={athletes.length}
-          detail="active roster"
-        />
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
+        <MetricTile icon={IconTraining} label="Upcoming" value={upcoming.length} detail="sessions ahead" />
+        <MetricTile icon={IconToday} label="Today" value={todayCount} detail="on the calendar" />
+        <MetricTile icon={IconProgress} label="Complete" value={completionPct} suffix="%" detail={`${completedTotal}/${assignedTotal} assignments`} />
+        <MetricTile icon={IconTeam} label="Athletes" value={athletes.length} detail="active roster" />
       </div>
 
       {workouts.length === 0 ? (
@@ -434,84 +332,68 @@ export function CoachWorkouts({
           title="No workouts yet"
           description="Create your first session and assign it to the team or specific athletes."
           action={
-            <button className="btn-gold" onClick={() => setCreateOpen(true)}>
+            <button className="btn-primary" onClick={() => setCreateOpen(true)}>
               <Plus size={16} /> New workout
             </button>
           }
         />
       ) : (
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="space-y-7">
-            <section>
-              <SectionHeader title="Upcoming timeline" count={upcoming.length} />
+        <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="min-w-0 space-y-3 sm:space-y-6">
+            <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 sm:hidden" aria-label="Workout period">
+              {(["upcoming", "past"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setMobileTab(tab)}
+                  aria-pressed={mobileTab === tab}
+                  className={cn("min-h-11 rounded-lg px-3 text-sm font-semibold transition-colors", mobileTab === tab ? "bg-white text-ink shadow-card" : "text-slate-500")}
+                >
+                  {tab === "upcoming" ? "Upcoming" : "History"}
+                  <span className="ml-2 text-xs text-slate-500">{tab === "upcoming" ? upcoming.length : past.length}</span>
+                </button>
+              ))}
+            </div>
+            <section className={cn(mobileTab !== "upcoming" && "hidden sm:block")}>
+              <SectionHeader title="Upcoming" count={upcoming.length} />
               {upcoming.length === 0 ? (
-                <p className="rounded-lg border border-dashed border-paper-200 bg-white/60 p-5 text-sm text-slate-500">
+                <p className="rounded-md border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-500">
                   Nothing scheduled ahead.
                 </p>
               ) : (
-                <RevealList items={upcoming} className="space-y-4 list-long" noun="sessions">
+                <RevealList items={upcoming} className="space-y-3 list-long" noun="sessions">
                   {(w) => <Row key={w.id} w={w} />}
                 </RevealList>
               )}
             </section>
 
-            {past.length > 0 && (
-              <section>
-                <SectionHeader title="Earlier" count={past.length} muted />
-                <RevealList
-                  items={past}
-                  className="space-y-4 opacity-90 list-long"
-                  noun="sessions"
-                >
+            {past.length > 0 ? (
+              <section className={cn(mobileTab !== "past" && "hidden sm:block")}>
+                <SectionHeader title="Earlier" count={past.length} />
+                <RevealList items={past} className="space-y-3 list-long" noun="sessions">
                   {(w) => <Row key={w.id} w={w} />}
                 </RevealList>
               </section>
+            ) : mobileTab === "past" && (
+              <p className="card p-5 text-sm text-slate-500 sm:hidden">Past sessions will appear here.</p>
             )}
           </div>
 
-          <aside className="space-y-4 xl:sticky xl:top-8 xl:self-start">
-            <section className="rounded-lg border border-ink/10 bg-ink p-5 text-white shadow-soft">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <h2 className="font-display text-sm font-semibold uppercase tracking-[0.14em]">
-                  Team load
-                </h2>
-                <span className="text-[10px] uppercase tracking-[0.16em] text-brand-300">
-                  Live
-                </span>
+          <aside className="space-y-4 xl:sticky xl:top-7 xl:self-start">
+            <section className="card p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-base font-semibold text-ink">Team Load</h2>
+                <span className="text-xs text-slate-500">{completionPct}% complete</span>
               </div>
-              <div className="mt-5 flex items-center gap-4">
-                <div
-                  className="grid h-28 w-28 shrink-0 place-items-center rounded-full"
-                  style={{
-                    background: `conic-gradient(#EAB308 ${completionPct * 3.6}deg, rgb(255 255 255 / 0.12) 0deg)`,
-                  }}
-                >
-                  <div className="grid h-20 w-20 place-items-center rounded-full bg-ink">
-                    <span className="font-display text-3xl font-bold">
-                      {completionPct}%
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-white">
-                    {completedTotal} of {assignedTotal} assignments complete
-                  </p>
-                  <p className="mt-1 text-xs leading-relaxed text-slate-400">
-                    Rest days are excluded so the completion signal stays focused on
-                    workouts athletes need to log.
-                  </p>
-                </div>
-              </div>
+              <AnimatedBar value={completionPct} barClassName="bg-emerald-500" />
+              <p className="mt-3 text-sm text-slate-600">
+                {completedTotal} of {assignedTotal} assignments complete.
+              </p>
             </section>
 
-            <section className="rounded-lg border border-paper-200 bg-white p-5 shadow-soft">
-              <div className="mb-4 flex items-center justify-between border-b border-paper-200 pb-3">
-                <h2 className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-ink">
-                  Session mix
-                </h2>
-                <span className="text-xs font-semibold text-slate-400">
-                  {workouts.length} total
-                </span>
+            <section className="card p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-base font-semibold text-ink">Session Mix</h2>
+                <span className="text-xs text-slate-500">{workouts.length} total</span>
               </div>
               {typeCounts.length === 0 ? (
                 <p className="text-sm text-slate-500">No sessions yet.</p>
@@ -527,7 +409,7 @@ export function CoachWorkouts({
                             <span className={cn("h-2 w-2 rounded-full", meta.dot)} />
                             {meta.short}
                           </span>
-                          <span className="text-xs text-slate-400">{count}</span>
+                          <span className="text-xs text-slate-500">{count}</span>
                         </div>
                         <AnimatedBar value={pct} barClassName={meta.bar} />
                       </div>
@@ -545,6 +427,7 @@ export function CoachWorkouts({
         onClose={() => setCreateOpen(false)}
         athletes={athletes}
       />
+      {importOpen && <WorkoutImportModal open onClose={() => setImportOpen(false)} nowISO={nowISO} />}
       {editing && (
         <WorkoutFormModal
           open
@@ -595,17 +478,14 @@ export function CoachWorkouts({
         />
       )}
 
-      {/* Mobile quick-add: a New workout button reachable from anywhere in the
-          list. Portalled to <body> so it stays pinned to the viewport (the page
-          wrapper's transform would otherwise anchor it mid-page). */}
       <Portal>
         <button
           onClick={() => setCreateOpen(true)}
-          className="fixed right-5 z-40 flex items-center gap-2 rounded-full bg-brand-400 px-5 py-3.5 font-semibold text-ink shadow-[0_12px_30px_-8px_rgb(19_23_31_/_0.55)] transition active:scale-95 lg:hidden"
-          style={{ bottom: "calc(5.25rem + env(safe-area-inset-bottom))" }}
+          className="fixed right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brand-400 text-ink-900 shadow-lift transition hover:bg-brand-300 active:scale-95 lg:hidden"
+          style={{ bottom: "calc(5.75rem + env(safe-area-inset-bottom))" }}
           aria-label="New workout"
         >
-          <Plus size={20} /> Workout
+          <Plus size={24} />
         </button>
       </Portal>
     </div>

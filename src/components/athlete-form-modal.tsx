@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Modal } from "./ui/modal";
 import { Field, FormError } from "./ui/field";
+import { normalizeUsername, usernameFromName } from "@/lib/username";
 
 export type AthleteEditable = {
   id: string;
   name: string;
-  email: string;
+  username: string | null;
   gradYear: number | null;
   events: string | null;
   hometown: string | null;
@@ -32,7 +33,11 @@ export function AthleteFormModal({
   const editing = Boolean(initial);
 
   const [name, setName] = useState(initial?.name ?? "");
-  const [email, setEmail] = useState(initial?.email ?? "");
+  // What the athlete signs in with. A new athlete gets one suggested from their
+  // name, so the coach only types it when they want something different.
+  const [username, setUsername] = useState(initial?.username ?? "");
+  const [usernameEdited, setUsernameEdited] = useState(Boolean(initial?.username));
+  const suggested = usernameEdited ? username : usernameFromName(name);
   const [gradYear, setGradYear] = useState(
     initial?.gradYear ? String(initial.gradYear) : ""
   );
@@ -46,15 +51,19 @@ export function AthleteFormModal({
   const [saving, setSaving] = useState(false);
 
   async function save() {
-    if (!name.trim() || !email.trim()) {
-      setError("Name and email are required.");
+    if (!name.trim()) {
+      setError("A name is required.");
+      return;
+    }
+    if (normalizeUsername(suggested).length < 3) {
+      setError("A username of at least 3 characters is required.");
       return;
     }
     setSaving(true);
     setError(null);
     const payload = {
       name,
-      email,
+      username: normalizeUsername(suggested),
       gradYear,
       events,
       hometown,
@@ -94,7 +103,7 @@ export function AthleteFormModal({
       description={
         editing
           ? undefined
-          : "They'll sign in with the temporary password “password123”, then set their own on first login."
+          : "They'll sign in with the temporary password \"password123\", then set their own on first login."
       }
       size="lg"
       footer={
@@ -102,7 +111,7 @@ export function AthleteFormModal({
           <button className="btn-ghost" onClick={onClose} disabled={saving}>
             Cancel
           </button>
-          <button className="btn-gold" onClick={save} disabled={saving}>
+          <button className="btn-primary" onClick={save} disabled={saving}>
             {saving && <Loader2 size={16} className="animate-spin" />}
             {editing ? "Save changes" : "Add athlete"}
           </button>
@@ -115,8 +124,18 @@ export function AthleteFormModal({
           <Field label="Full name" required>
             <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Maya Thompson" />
           </Field>
-          <Field label="Email" required>
-            <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="maya@scadrunning.com" />
+          <Field label="Username" required hint="What they type to sign in.">
+            <input
+              className="input"
+              value={suggested}
+              onChange={(e) => {
+                setUsernameEdited(true);
+                setUsername(normalizeUsername(e.target.value));
+              }}
+              placeholder="maya"
+              autoCapitalize="none"
+              spellCheck={false}
+            />
           </Field>
           <Field label="Graduation year">
             <input className="input" inputMode="numeric" value={gradYear} onChange={(e) => setGradYear(e.target.value)} placeholder="2027" />

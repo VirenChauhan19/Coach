@@ -87,7 +87,7 @@ export function AnimatedBar({
   height?: string;
 }) {
   const target = Math.max(0, Math.min(100, value));
-  const [width, setWidth] = useState(reduceMotion() ? target : 0);
+  const [width, setWidth] = useState(0);
 
   useEffect(() => {
     if (reduceMotion()) {
@@ -101,7 +101,7 @@ export function AnimatedBar({
   return (
     <div
       className={cn(
-        "w-full overflow-hidden rounded-sm bg-paper-200",
+        "w-full overflow-hidden rounded-sm bg-slate-200",
         height,
         className
       )}

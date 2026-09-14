@@ -69,7 +69,7 @@ export function FeedbackModal({
           <button className="btn-ghost" onClick={onClose} disabled={saving}>
             Cancel
           </button>
-          <button className="btn-gold" onClick={save} disabled={saving}>
+          <button className="btn-primary" onClick={save} disabled={saving}>
             {saving && <Loader2 size={16} className="animate-spin" />}
             Save feedback
           </button>
@@ -84,8 +84,9 @@ export function FeedbackModal({
             <button
               type="button"
               onClick={() => setCompleted(true)}
+              aria-pressed={completed}
               className={cn(
-                "flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-semibold transition",
+                "flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors",
                 completed
                   ? "border-emerald-500 bg-emerald-50 text-emerald-700"
                   : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
@@ -96,8 +97,9 @@ export function FeedbackModal({
             <button
               type="button"
               onClick={() => setCompleted(false)}
+              aria-pressed={!completed}
               className={cn(
-                "flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-semibold transition",
+                "flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors",
                 !completed
                   ? "border-amber-500 bg-amber-50 text-amber-700"
                   : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
@@ -110,18 +112,19 @@ export function FeedbackModal({
 
         <Field
           label="Effort level (RPE)"
-          hint="1 = very easy · 10 = all-out / maximal"
+          hint="1 = very easy / 10 = all-out"
         >
-          <div className="flex flex-wrap gap-1.5">
+          <div className="grid grid-cols-5 gap-2 sm:grid-cols-10 sm:gap-1.5">
             {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
               <button
                 key={n}
                 type="button"
                 onClick={() => setEffort(effort === n ? null : n)}
+                aria-pressed={effort === n}
                 className={cn(
-                  "h-9 w-9 rounded-lg text-sm font-semibold transition",
+                  "h-12 min-w-0 rounded-xl text-sm font-semibold transition-colors",
                   effort === n
-                    ? "bg-ink text-white"
+                    ? "bg-brand-400 text-ink-900"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 )}
               >

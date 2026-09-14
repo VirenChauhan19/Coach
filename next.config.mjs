@@ -18,6 +18,7 @@ const securityHeaders = [
 
 const nextConfig = {
   reactStrictMode: true,
+  devIndicators: false,
   // Keep the demo build resilient: lint issues shouldn't block `next build`.
   eslint: {
     ignoreDuringBuilds: true,

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { apiError, ok, ApiError, requireCoach } from "@/lib/api";
 import { hashPassword } from "@/lib/auth";
+import { emailForUsername, isValidUsername, normalizeUsername, usernameFromName } from "@/lib/username";
 
 const clean = (v: unknown): string | null => {
   const s = String(v ?? "").trim();
@@ -15,14 +16,26 @@ export async function POST(req: NextRequest) {
     const b = await req.json();
 
     const name = String(b.name ?? "").trim();
-    const email = String(b.email ?? "").trim().toLowerCase();
-    if (!name || !email) throw new ApiError(400, "Name and email are required.");
+    if (!name) throw new ApiError(400, "Name is required.");
+
+    // The coach gives a username; nobody has to invent an email address for a
+    // roster that never sends mail. A real one is still accepted if given.
+    const username = normalizeUsername(b.username ?? usernameFromName(name));
+    if (!isValidUsername(username)) {
+      throw new ApiError(400, "Usernames are 3-30 characters: letters, numbers, dots, dashes or underscores.");
+    }
+    const email = String(b.email ?? "").trim().toLowerCase() || emailForUsername(username);
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       throw new ApiError(400, "Please enter a valid email address.");
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) throw new ApiError(409, "An athlete with that email already exists.");
+    const taken = await prisma.user.findFirst({
+      where: { OR: [{ username }, { email }] },
+      select: { username: true },
+    });
+    if (taken) {
+      throw new ApiError(409, taken.username === username ? "That username is already taken." : "An athlete with that email already exists.");
+    }
 
     const password = String(b.password ?? "").trim() || "password123";
     const passwordHash = await hashPassword(password);
@@ -32,6 +45,7 @@ export async function POST(req: NextRequest) {
     const athlete = await prisma.user.create({
       data: {
         name,
+        username,
         email,
         passwordHash,
         role: "ATHLETE",
@@ -47,7 +61,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return ok({ id: athlete.id, tempPassword: password }, 201);
+    return ok({ id: athlete.id, username: athlete.username, tempPassword: password }, 201);
   } catch (e) {
     return apiError(e);
   }

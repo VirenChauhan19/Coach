@@ -3,59 +3,62 @@
 @tailwind utilities;
 
 :root {
-  --background: 244 241 233;
-  --foreground: 19 23 31;
+  --background: 247 247 245;
+  --foreground: 28 32 39;
 }
 
 @layer base {
   html {
+    scroll-padding-bottom: 7rem;
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  /* The bottom nav is position:fixed, which anchors it to the *layout* viewport.
-     Rubber-banding the document, the overscroll bounce you get swiping down at
-     the top of a page, moves the visual viewport out from under it, and the bar
-     visibly flies up the screen before settling back. Refusing the bounce is
-     what keeps pinned chrome pinned; it also turns off pull-to-refresh, which an
-     installed app has no use for. */
+
   html,
   body {
     overscroll-behavior-y: none;
   }
+
+  button, a, input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button, a {
+    touch-action: manipulation;
+  }
+
+  :focus-visible {
+    outline: 2px solid #b88a1e;
+    outline-offset: 4px;
+  }
+
   body {
     @apply bg-paper text-ink antialiased;
-    background-image: linear-gradient(
-      180deg,
-      rgb(255 252 244 / 0.96),
-      rgb(244 241 233) 48%,
-      rgb(239 233 220)
-    );
-    font-feature-settings: "cv11", "ss01";
+    font-feature-settings: "cv11", "ss01", "tnum";
   }
-  @media (min-width: 1024px) {
-    body {
-      background-image:
-        linear-gradient(180deg, rgb(255 252 244 / 0.98), rgb(244 241 233) 52%, rgb(239 233 220)),
-        linear-gradient(90deg, rgb(19 23 31 / 0.035) 1px, transparent 1px),
-        linear-gradient(180deg, rgb(19 23 31 / 0.026) 1px, transparent 1px);
-      background-size: auto, 32px 32px, 32px 32px;
-    }
+
+  .dark body {
+    background-color: #111418;
+    color: #eef1f5;
   }
+
   ::selection {
-    background-color: #fcefc1; /* brand-100 */
-    color: #13171f;
+    background-color: #f3d77b;
+    color: #1c2027;
   }
-  /* Thin, unobtrusive scrollbars for the chat / lists */
+
   .scroll-thin {
     scrollbar-width: thin;
     scrollbar-color: rgb(203 213 225) transparent;
   }
+
   .scroll-thin::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
+
   .scroll-thin::-webkit-scrollbar-thumb {
     background-color: rgb(203 213 225);
     border-radius: 9999px;
@@ -63,12 +66,6 @@
 }
 
 @layer utilities {
-  /* Full height of the viewport you can actually see. iOS resolves 100vh to the
-     *large* viewport, the height the page would have with the browser chrome
-     hidden, so a 100vh shell is taller than the screen whenever that chrome is
-     showing, and everything pinned to the bottom sits below the fold. 100dvh
-     tracks the real thing; the 100vh line is the fallback for anything old
-     enough not to know dvh. */
   .min-h-app {
     min-height: 100vh;
     min-height: 100dvh;
@@ -76,222 +73,242 @@
 }
 
 @layer components {
+  .lucide {
+    flex-shrink: 0;
+    stroke-width: 1.75;
+  }
+
+  .btn > svg {
+    width: 18px;
+    height: 18px;
+  }
+
   .card {
-    @apply rounded-lg border border-ink/[0.09] bg-white transition-colors duration-200 ease-out;
+    @apply rounded-[22px] border border-slate-200/80 bg-white shadow-card sm:rounded-2xl;
   }
+
   .card-link {
-    @apply hover:border-ink/25;
+    @apply transition-colors hover:border-slate-300 hover:bg-slate-50;
   }
-  /* Section header. Ink rather than gold: when every heading on the page is
-     brand-coloured, none of them carries any weight. Gold is for the one thing
-     that matters on a screen, not for punctuation. */
+
   .eyebrow {
-    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-ink;
+    @apply text-xs font-medium text-slate-500;
   }
+
   .input {
-    /* 16px on mobile prevents iOS Safari from auto-zooming on focus; 14px on sm+ */
-    @apply w-full rounded-lg border border-ink/15 bg-white px-3 py-2 text-base text-ink shadow-none outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 sm:text-sm;
+    @apply min-h-12 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-base text-ink shadow-none outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-400/20 sm:min-h-11 sm:py-2 sm:text-sm;
   }
+
   .label {
     @apply mb-1.5 block text-sm font-medium text-slate-700;
   }
+
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-sm transition active:translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:cursor-not-allowed disabled:opacity-60 disabled:active:translate-y-0;
-  }
-  .btn-primary {
-    @apply btn bg-gradient-to-b from-ink-700 to-ink text-white hover:from-ink-600 hover:to-ink-700 focus-visible:ring-ink;
-  }
-  .btn-gold {
-    @apply btn bg-gradient-to-b from-brand-300 to-brand-400 text-ink shadow-[0_2px_10px_-2px_rgb(234_179_8_/_0.45)] hover:from-brand-200 hover:to-brand-300 focus-visible:ring-brand-500;
-  }
-  .btn-ghost {
-    @apply btn bg-transparent text-slate-700 shadow-none hover:bg-ink/5 focus-visible:ring-slate-300;
-  }
-  .btn-outline {
-    @apply btn border border-ink/15 bg-white/90 text-slate-700 hover:border-ink/30 hover:bg-white focus-visible:ring-slate-300;
-  }
-  .badge {
-    @apply inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset;
-  }
-  /* Animated gold underline for nav items and inline links. */
-  .link-underline {
-    @apply relative;
-  }
-  .link-underline::after {
-    content: "";
-    @apply absolute -bottom-0.5 left-0 h-0.5 w-full origin-left scale-x-0 bg-brand-400 transition-transform duration-200;
-  }
-  .link-underline:hover::after,
-  .link-underline:focus-visible::after {
-    @apply scale-x-100;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-11;
   }
 
-  /* Shimmering placeholder for loading states (loading.tsx skeletons). */
-  .skeleton {
-    @apply relative overflow-hidden rounded-md bg-ink/[0.06];
+  .btn-primary {
+    @apply btn bg-brand-400 text-ink-900 shadow-[0_3px_10px_-5px_rgba(184,138,30,0.55)] hover:bg-brand-300 active:bg-brand-500;
   }
-  .skeleton::after {
-    content: "";
-    @apply absolute inset-0;
-    transform: translateX(-100%);
-    background-image: linear-gradient(
-      90deg,
-      transparent,
-      rgb(255 255 255 / 0.6),
-      transparent
-    );
-    animation: shimmer 1.5s infinite;
+
+  .btn-ghost {
+    @apply btn bg-transparent text-slate-600 hover:bg-slate-100 hover:text-ink;
+  }
+
+  .btn-outline {
+    @apply btn border border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset;
+  }
+
+  .link-underline {
+    @apply underline underline-offset-4 decoration-slate-300 transition-colors hover:decoration-ink;
+  }
+
+  .skeleton {
+    @apply rounded-md bg-slate-200;
+  }
+}
+
+@layer utilities {
+  .dark .card {
+    border-color: #303845 !important;
+    background-color: #191d23 !important;
+    box-shadow: none !important;
+  }
+
+  .dark .input {
+    border-color: #3a4350 !important;
+    background-color: #111418 !important;
+    color: #eef1f5 !important;
+  }
+
+  .dark .input::placeholder {
+    color: #7f8a99 !important;
+  }
+
+  .dark .btn-outline {
+    border-color: #3a4350 !important;
+    background-color: #191d23 !important;
+    color: #d8dde5 !important;
+  }
+
+  .dark .btn-ghost {
+    color: #c7ced8 !important;
+  }
+
+  .dark .bg-white {
+    background-color: #191d23 !important;
+  }
+
+  .dark .bg-paper,
+  .dark .bg-paper-50,
+  .dark .bg-paper-100 {
+    background-color: #111418 !important;
+  }
+
+  .dark .bg-brand-50 {
+    background-color: #2a2415 !important;
+  }
+
+  .dark .bg-brand-100 {
+    background-color: #3a2f15 !important;
+  }
+
+  .dark .text-brand-800,
+  .dark .text-brand-700 {
+    color: #f6dd8a !important;
+  }
+
+  .dark .bg-slate-50 {
+    background-color: #202630 !important;
+  }
+
+  .dark .bg-slate-100 {
+    background-color: #28303b !important;
+  }
+
+  .dark .bg-slate-200 {
+    background-color: #343d4a !important;
+  }
+
+  .dark .border-brand-200,
+  .dark .border-slate-100,
+  .dark .border-slate-200 {
+    border-color: #303845 !important;
+  }
+
+  .dark .border-slate-300,
+  .dark .border-slate-400 {
+    border-color: #485262 !important;
+  }
+
+  .dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+  .dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #303845 !important;
+  }
+
+  .dark .text-ink {
+    color: #f4f0e8 !important;
+  }
+
+  .dark .text-slate-700 {
+    color: #d8dde5 !important;
+  }
+
+  .dark .text-slate-600 {
+    color: #c7ced8 !important;
+  }
+
+  .dark .text-slate-500 {
+    color: #a6afbd !important;
+  }
+
+  .dark .text-slate-400,
+  .dark .text-slate-300 {
+    color: #8792a2 !important;
+  }
+
+  .dark .shadow-card,
+  .dark .shadow-soft,
+  .dark .shadow-lift {
+    box-shadow: none !important;
+  }
+
+  .dark .hover\:bg-slate-50:hover,
+  .dark .hover\:bg-slate-100:hover {
+    background-color: #242b36 !important;
+  }
+
+  .dark .hover\:text-ink:hover {
+    color: #f4f0e8 !important;
   }
 }
 
 @layer utilities {
   .hover-lift {
-    @apply transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-brand-300/60 hover:bg-white hover:shadow-soft;
+    @apply transition-colors hover:border-slate-300 hover:bg-slate-50;
   }
 
   .stagger > * {
-    animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-  .stagger > *:nth-child(1) {
-    animation-delay: 0ms;
-  }
-  .stagger > *:nth-child(2) {
-    animation-delay: 45ms;
-  }
-  .stagger > *:nth-child(3) {
-    animation-delay: 85ms;
-  }
-  .stagger > *:nth-child(4) {
-    animation-delay: 120ms;
-  }
-  .stagger > *:nth-child(5) {
-    animation-delay: 150ms;
-  }
-  .stagger > *:nth-child(6) {
-    animation-delay: 180ms;
-  }
-  .stagger > *:nth-child(7) {
-    animation-delay: 205ms;
-  }
-  .stagger > *:nth-child(n + 8) {
-    animation-delay: 225ms;
+    animation: none;
   }
 
-  /* Timeline lists that run long, a full season is several hundred cards.
-     `.stagger` is wrong at that length: it hands an entrance animation to every
-     single child, so the workouts screen started hundreds of them at once on a
-     phone. This keeps the entrance for the cards you can actually see, and lets
-     the browser skip layout and paint for everything scrolled out of view.
-     `contain-intrinsic-size: auto` means each card remembers its real height
-     once measured, so the scrollbar stays honest and scrolling doesn't jump. */
   .list-long > * {
     content-visibility: auto;
     contain-intrinsic-size: auto 132px;
   }
-  .list-long > *:nth-child(-n + 6) {
-    animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-  .list-long > *:nth-child(2) {
-    animation-delay: 45ms;
-  }
-  .list-long > *:nth-child(3) {
-    animation-delay: 85ms;
-  }
-  .list-long > *:nth-child(4) {
-    animation-delay: 120ms;
-  }
-  .list-long > *:nth-child(5) {
-    animation-delay: 150ms;
-  }
-  .list-long > *:nth-child(6) {
-    animation-delay: 180ms;
-  }
 }
 
-/* Explicit keyframes so the .stagger entrance works regardless of Tailwind purge. */
-@keyframes fade-up {
+@keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(12px);
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
     transform: translateY(0);
   }
 }
 
-@keyframes shimmer {
+@keyframes sheet-down {
   from {
-    transform: translateX(-100%);
+    transform: translateY(0);
   }
   to {
-    transform: translateX(100%);
+    transform: translateY(100%);
   }
 }
 
-/* Branded nav-icon micro-interactions. Each animated part lives inside a `.group`
-   nav link, so it reacts to hover/focus. Pivots are in viewBox units; if a browser
-   ignores transform-box the icon simply stays static (no breakage). The global
-   reduced-motion guard below neutralizes all of this. */
-.ic-hand,
-.ic-lap,
-.ic-today,
-.ic-stride,
-.ic-sliders > *,
-.ic-typing > * {
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  transform-box: view-box;
-}
-.ic-hand {
-  transform-origin: 12px 13px;
-}
-.ic-stride {
-  transform-origin: 11px 12px;
-}
-.ic-today {
-  transform-origin: 9px 13.75px;
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
-.group:hover .ic-hand,
-.group:focus-visible .ic-hand {
-  transform: rotate(295deg);
-}
-.group:hover .ic-lap,
-.group:focus-visible .ic-lap {
-  transform: translateX(9px);
-}
-.group:hover .ic-today,
-.group:focus-visible .ic-today {
-  transform: translateY(-1px) scale(1.08);
-}
-.group:hover .ic-stride,
-.group:focus-visible .ic-stride {
-  transform: rotate(-15deg);
-}
-.group:hover .ic-sliders > *,
-.group:focus-visible .ic-sliders > * {
-  transform: translateX(2.5px);
-}
-.group:hover .ic-sliders > *:nth-child(2),
-.group:focus-visible .ic-sliders > *:nth-child(2) {
-  transform: translateX(-2.5px);
-}
-.group:hover .ic-typing > *:nth-child(1),
-.group:focus-visible .ic-typing > *:nth-child(1) {
-  transform: translateY(-1.6px);
-}
-.group:hover .ic-typing > *:nth-child(2),
-.group:focus-visible .ic-typing > *:nth-child(2) {
-  transform: translateY(-1.6px);
-  transition-delay: 70ms;
-}
-.group:hover .ic-typing > *:nth-child(3),
-.group:focus-visible .ic-typing > *:nth-child(3) {
-  transform: translateY(-1.6px);
-  transition-delay: 140ms;
-}
-
-/* Respect users who ask for less motion: neutralize animation and transitions. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -1,5 +1,5 @@
 // AUTO-GENERATED from "SCAD XC 2026.xlsx". Do not edit by hand.
-// 18 athletes (mileage groups + pace targets) and the full 4-phase plan.
+// 19 athletes (mileage groups + pace targets) and the full 4-phase plan.
 //
 // Phase 2 (weeks 9-12) updated from "SCAD XC 2026 phase 2.xlsx": the coach
 // replaced the "3K/5K WO #1-#4" placeholders with the prescribed rep sessions.
@@ -8,11 +8,16 @@
 // "Training, 9-14.xlsx". That workbook restructured race week, Monday became a
 // tempo-rep session and Wednesday a set of 90" reps, and introduced a fourth
 // group, D, which only appears in the weeks the coach has written since.
+// Tino joined on that chart and is the first athlete in group D, so his plan
+// starts at week 15, the weeks written before it have no D row to give him.
 //
 // `group` is the row an athlete takes their *volume* from. `workoutGroup` is
 // the row they take *quality sessions* from, present only when the coach splits
 // the two ("VOL: C, WO: D" on the chart); see cellForAthlete() in classify.ts.
 // Booker and Ryan have dropped off the chart and keep their previous entries.
+// Ryan has since left the team: `active: false` seeds him the way the coach
+// removing him in the app does, history kept, off every roster and unable to
+// log in. Booker is still on the team, just not on this week's chart.
 // Aadhick is listed "TBD-INJ", which names no row, so he holds at B.
 //
 // Week 15 also carries that workbook's logistics rows, practice `time` and
@@ -21,7 +26,7 @@
 // lifting happens on workout days.
 
 export type Paces = { ez: string; tempo: string; tempoMed?: string; k10: string; k8: string; k6: string; k5: string; k3: string; mile: string };
-export type AthleteSeed = { name: string; email: string; group: string; workoutGroup?: string; lrTarget: string; ezTarget: string; xtTarget?: string; doubleFreq: string; xtFreq: string; liftTime?: string; paces: Paces };
+export type AthleteSeed = { name: string; email: string; group: string; workoutGroup?: string; lrTarget: string; ezTarget: string; xtTarget?: string; doubleFreq: string; xtFreq: string; liftTime?: string; active?: boolean; paces: Paces };
 export type DayPlan = { A: string; B: string; C: string; D?: string; PR: string; time?: string; loc?: string; lift?: string; meeting?: string };
 export type WeekPlan = { phase: number; week: number; theme: string; start: string; days: DayPlan[] };
 
@@ -97,6 +102,7 @@ export const ATHLETES: AthleteSeed[] = [
     "ezTarget": "50-60",
     "doubleFreq": "0X",
     "xtFreq": "0X",
+    "active": false,
     "paces": {
       "ez": "7:00-7:08",
       "tempo": "5:27-5:33",
@@ -384,6 +390,27 @@ export const ATHLETES: AthleteSeed[] = [
     "doubleFreq": "0X",
     "xtFreq": "1-2X",
     "liftTime": "OYO",
+    "paces": {
+      "ez": "9:02-9:08",
+      "tempo": "7:02-7:06",
+      "tempoMed": "7:13-7:17",
+      "k10": "6:48-6:52",
+      "k8": "6:42-6:46",
+      "k6": "6:34-6:38",
+      "k5": "6:30-6:34",
+      "k3": "6:18-6:22",
+      "mile": "5:28-5:32"
+    }
+  },
+  {
+    "name": "Tino",
+    "email": "tino@scadxc.com",
+    "group": "D",
+    "lrTarget": "40-50",
+    "ezTarget": "20-30",
+    "xtTarget": "30-45",
+    "doubleFreq": "0X",
+    "xtFreq": "2X",
     "paces": {
       "ez": "9:02-9:08",
       "tempo": "7:02-7:06",

@@ -71,43 +71,49 @@ export function AthleteWorkoutActions({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         {QUICK.map((q) => {
           const Icon = q.icon;
           const selected = status === q.status;
           return (
             <button
               key={q.status}
+              type="button"
               onClick={() => setStatus(q.status)}
               disabled={busy !== null}
+              aria-pressed={selected}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition disabled:opacity-60",
+                "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 disabled:opacity-60 sm:min-h-11",
+                q.status === "COMPLETED" && "col-span-2",
                 selected
                   ? q.active
-                  : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+                  : q.status === "COMPLETED"
+                    ? "border-[#1c2027] bg-[#1c2027] text-white hover:bg-ink-700"
+                    : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
               )}
             >
               {busy === q.status ? (
                 <Loader2 size={15} className="animate-spin" />
               ) : (
-                <Icon size={15} />
+                <Icon size={18} aria-hidden="true" />
               )}
-              {q.label}
+              {q.status === "COMPLETED" && !selected ? "Mark complete" : q.label}
             </button>
           );
         })}
       </div>
 
       <button
+        type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline"
+        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-ink sm:w-auto sm:justify-start"
       >
-        <PencilLine size={14} />
-        {fb ? "Edit post-workout feedback" : "Add post-workout feedback"}
+        <PencilLine size={18} aria-hidden="true" />
+        {fb ? "Edit your workout feedback" : "How did it feel? Add feedback"}
       </button>
 
       {fb && (
-        <div className="rounded-xl border border-paper-200 bg-paper-50 p-3 text-sm">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-600">
             {fb.effort != null && (
               <span>
@@ -119,7 +125,7 @@ export function AthleteWorkoutActions({
               {fb.completed ? "Yes" : "No"}
             </span>
           </div>
-          {fb.feeling && <p className="mt-1.5 text-slate-700">“{fb.feeling}”</p>}
+          {fb.feeling && <p className="mt-1.5 text-slate-700">&quot;{fb.feeling}&quot;</p>}
           {fb.soreness && (
             <p className="mt-1 text-slate-500">Soreness: {fb.soreness}</p>
           )}

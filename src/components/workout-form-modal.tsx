@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Users, User, Zap } from "lucide-react";
+import { Check, Loader2, Users, User, Zap } from "lucide-react";
 import { Modal } from "./ui/modal";
 import { Field, FormError } from "./ui/field";
 import { Avatar } from "./ui/avatar";
@@ -164,7 +164,7 @@ export function WorkoutFormModal({
           <button className="btn-ghost" onClick={onClose} disabled={saving}>
             Cancel
           </button>
-          <button className="btn-gold" onClick={save} disabled={saving}>
+          <button className="btn-primary" onClick={save} disabled={saving}>
             {saving && <Loader2 size={16} className="animate-spin" />}
             {editing ? "Save changes" : "Create workout"}
           </button>
@@ -177,13 +177,12 @@ export function WorkoutFormModal({
         {!editing && (
           <div>
             <div className="mb-2 flex items-center gap-2">
-              <Zap size={14} className="text-brand-600" />
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <Zap size={14} className="text-slate-500" />
+              <span className="text-sm font-medium text-slate-600">
                 Quick add
               </span>
-              <span className="text-xs text-slate-400">Tap one to prefill, then Create</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 stagger">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {WORKOUT_PRESETS.map((p) => {
                 const meta = workoutMeta(p.type);
                 const active = type === p.type && title === p.title;
@@ -195,8 +194,8 @@ export function WorkoutFormModal({
                     className={cn(
                       "flex items-center gap-2 rounded-md border px-3 py-2 text-left text-sm font-medium transition-colors",
                       active
-                        ? "border-brand-400 bg-brand-50 text-ink ring-1 ring-brand-300"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:bg-brand-50/60"
+                        ? "border-ink bg-slate-100 text-ink"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                     )}
                   >
                     <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", meta.dot)} />
@@ -355,7 +354,7 @@ export function WorkoutFormModal({
                   className={cn(
                     "rounded-lg border px-3 py-2 text-sm font-semibold transition",
                     on
-                      ? "border-brand-500 bg-brand-50 text-ink ring-1 ring-brand-300"
+                      ? "border-ink bg-slate-100 text-ink"
                       : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
                   )}
                 >
@@ -380,15 +379,15 @@ export function WorkoutFormModal({
         </Field>
 
         {scope === "INDIVIDUAL" && (
-          <div className="rounded-xl border border-slate-200">
+          <div className="rounded-md border border-slate-200">
             <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <span className="text-xs font-medium text-slate-500">
                 {selected.length} selected
               </span>
               <div className="flex gap-2 text-xs font-semibold">
                 <button
                   type="button"
-                  className="text-brand-700 hover:underline"
+                  className="text-ink underline-offset-4 hover:underline"
                   onClick={() => setSelected(athletes.map((a) => a.id))}
                 >
                   Select all
@@ -413,7 +412,7 @@ export function WorkoutFormModal({
                       onClick={() => toggle(a.id)}
                       className={cn(
                         "flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition",
-                        on ? "bg-brand-50 ring-1 ring-brand-300" : "hover:bg-slate-50"
+                        on ? "bg-slate-100 ring-1 ring-slate-300" : "hover:bg-slate-50"
                       )}
                     >
                       <Avatar name={a.name} seed={a.id} size={26} />
@@ -422,11 +421,11 @@ export function WorkoutFormModal({
                         className={cn(
                           "flex h-4 w-4 items-center justify-center rounded border",
                           on
-                            ? "border-brand-500 bg-brand-500 text-white"
+                            ? "border-ink bg-ink text-white"
                             : "border-slate-300"
                         )}
                       >
-                        {on && <span className="text-[10px]">✓</span>}
+                        {on && <Check size={11} />}
                       </span>
                     </button>
                   );

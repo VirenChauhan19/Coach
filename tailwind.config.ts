@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -20,53 +21,47 @@ const config: Config = {
           "Arial",
           "sans-serif",
         ],
-        // Condensed athletic display face (Oswald) for headings + numbers.
         display: [
-          "var(--font-display)",
-          "Oswald",
+          "var(--font-sans)",
+          "Inter",
           "Segoe UI",
           "system-ui",
+          "-apple-system",
           "sans-serif",
         ],
       },
       colors: {
-        // Collegiate charcoal for the shell / sidebar
         ink: {
-          DEFAULT: "#13171F",
-          900: "#0E1117",
-          800: "#171C26",
-          700: "#222937",
-          600: "#323B4D",
-          500: "#4A5468",
+          DEFAULT: "#1C2027",
+          900: "#111418",
+          800: "#191D23",
+          700: "#262B34",
+          600: "#3A414D",
+          500: "#5A6472",
         },
-        // SCAD black-and-gold — brighter, more confident gold; dark end kept
-        // legible for gold text on the warm paper background.
         brand: {
-          50: "#FFF9E6",
-          100: "#FCEFC1",
-          200: "#F7DD8C",
-          300: "#F1C84A",
-          400: "#EAB308",
-          500: "#D49A06",
-          600: "#B07D07",
-          700: "#8A6309",
-          800: "#6E4F10",
-          900: "#5A4112",
+          50: "#FFFAEA",
+          100: "#FBEFC4",
+          200: "#F6DD8A",
+          300: "#EFC957",
+          400: "#DDB13D",
+          500: "#B88A1E",
+          600: "#906817",
+          700: "#704F17",
+          800: "#573F18",
+          900: "#443216",
         },
-        // Warm "paper" neutrals — replaces the cold default slate background
         paper: {
-          DEFAULT: "#F4F1E9",
-          50: "#FBF9F4",
-          100: "#F0ECE0",
-          200: "#E5DFD0",
+          DEFAULT: "#F7F7F5",
+          50: "#FBFBFA",
+          100: "#F1F2EF",
+          200: "#E5E7E3",
         },
       },
       boxShadow: {
-        card: "0 1px 2px 0 rgb(16 24 40 / 0.04), 0 1px 3px 0 rgb(16 24 40 / 0.06)",
-        // Layered ambient + contact shadow for a more premium, crafted card.
-        soft: "0 1px 2px 0 rgb(16 24 40 / 0.05), 0 8px 24px -8px rgb(16 24 40 / 0.12)",
-        // Stronger elevation for hover / lifted states.
-        lift: "0 2px 4px -1px rgb(16 24 40 / 0.06), 0 18px 40px -14px rgb(16 24 40 / 0.20)",
+        card: "0 1px 2px rgb(15 23 42 / 0.04)",
+        soft: "0 8px 20px -16px rgb(15 23 42 / 0.22)",
+        lift: "0 16px 32px -24px rgb(15 23 42 / 0.30)",
       },
       borderRadius: {
         xl: "0.875rem",
@@ -78,12 +73,12 @@ const config: Config = {
           to: { opacity: "1" },
         },
         "fade-up": {
-          from: { opacity: "0", transform: "translateY(12px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
+          from: { opacity: "0" },
+          to: { opacity: "1" },
         },
         pop: {
-          from: { opacity: "0", transform: "scale(0.96)" },
-          to: { opacity: "1", transform: "scale(1)" },
+          from: { opacity: "0", transform: "translateY(4px) scale(0.99)" },
+          to: { opacity: "1", transform: "translateY(0) scale(1)" },
         },
         "sheet-up": {
           from: { transform: "translateY(100%)" },
@@ -101,28 +96,20 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-5px)" },
         },
-        // route-change entrance for the main content area
         "page-enter": {
-          from: { opacity: "0", transform: "translateY(6px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
+          from: { opacity: "0" },
+          to: { opacity: "1" },
         },
       },
       animation: {
-        // opacity-only fade for page transitions / overlays / accents
-        "fade-in": "fade-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both",
-        // the workhorse entrance: rise + fade with a soft decelerate
-        "fade-up": "fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both",
-        // springy scale for dialogs / taps
-        pop: "pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both",
-        // mobile bottom-sheet slide
-        "sheet-up": "sheet-up 0.34s cubic-bezier(0.22, 1, 0.36, 1) both",
-        "sheet-down": "sheet-down 0.24s cubic-bezier(0.4, 0, 1, 1) both",
-        "fade-out": "fade-out 0.22s ease-in both",
+        "fade-in": "fade-in 0.16s ease-out both",
+        "fade-up": "fade-up 0.16s ease-out both",
+        pop: "pop 0.18s ease-out both",
+        "sheet-up": "sheet-up 0.24s ease-out both",
+        "sheet-down": "sheet-down 0.2s ease-in both",
+        "fade-out": "fade-out 0.16s ease-in both",
         float: "float 4s ease-in-out infinite",
-        // Runs on every tab change, and `both` means the page starts invisible
-        // and only finishes appearing when it ends. At half a second that read
-        // as lag on its own, regardless of how fast the data arrived.
-        "page-enter": "page-enter 0.26s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "page-enter": "page-enter 0.12s ease-out both",
       },
     },
   },

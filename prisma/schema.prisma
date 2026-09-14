@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -26,6 +26,9 @@ model Team {
 model User {
   id           String   @id @default(cuid())
   name         String
+  // What people sign in with. The email below is the account's contact field,
+  // derived from the username when the coach doesn't supply a real one.
+  username     String?  @unique
   email        String   @unique
   passwordHash String
   role         String   @default("ATHLETE") // COACH | ATHLETE
@@ -167,7 +170,7 @@ model Message {
   @@index([type, recipientId, readAt])
   // Team channels (announcements, group chat, photos) page by newest-first.
   @@index([type, teamId, createdAt])
-  // A DM thread is "sent by me OR to me"; Postgres bitmap-ORs these two.
+  // A DM thread is "sent by me OR to me"; each side gets its own lookup path.
   @@index([type, senderId, createdAt])
   @@index([type, recipientId, createdAt])
 }

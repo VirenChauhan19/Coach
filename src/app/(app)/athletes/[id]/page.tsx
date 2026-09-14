@@ -2,12 +2,11 @@ import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import {
   ArrowLeft,
-  Mail,
+  AtSign,
   Phone,
   MapPin,
   Trophy,
   ShieldAlert,
-  MessageSquare,
 } from "lucide-react";
 import { getCurrentUser, getViewerTimeZone } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -132,7 +131,7 @@ export default async function AthleteDetailPage({
           <div className="flex items-center gap-4">
             <Avatar name={athlete.name} seed={athlete.id} size={64} />
             <div>
-              <h1 className="font-display text-2xl font-bold uppercase leading-none tracking-tight text-ink sm:text-3xl">
+              <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
                 {athlete.name}
               </h1>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
@@ -141,7 +140,7 @@ export default async function AthleteDetailPage({
                 {eventsList(athlete.events).map((e) => (
                   <span
                     key={e}
-                    className="rounded-md bg-paper-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600"
+                    className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600"
                   >
                     {e}
                   </span>
@@ -149,15 +148,12 @@ export default async function AthleteDetailPage({
               </div>
             </div>
           </div>
-          <Link href="/messages" className="btn-outline self-start">
-            <MessageSquare size={16} /> Message
-          </Link>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-paper-200 pt-4 text-sm text-slate-600">
+        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-200 pt-4 text-sm text-slate-600">
           <span className="inline-flex items-center gap-1.5">
-            <Mail size={14} className="text-slate-400" />
-            {athlete.email}
+            <AtSign size={14} className="text-slate-400" />
+            {athlete.username ?? athlete.email}
           </span>
           {athlete.phone && (
             <span className="inline-flex items-center gap-1.5">
@@ -174,26 +170,19 @@ export default async function AthleteDetailPage({
         </div>
       </div>
 
-      {/* stats, editorial scoreboard */}
       <div className="mt-4 grid grid-cols-3 gap-3">
         {[
           { label: "Completion", value: `${completionRate}%` },
           { label: "Completed", value: String(completed) },
           { label: "To discuss", value: String(needsDiscussion) },
-        ].map((s, i) => (
+        ].map((s) => (
           <div key={s.label} className="card p-4">
-            <div className="flex items-center justify-between border-b border-paper-200 pb-2">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                {s.label}
-              </span>
-              <span className="font-mono text-[10px] text-slate-400">
-                {String(i + 1).padStart(2, "0")}
-              </span>
+            <div className="text-sm text-slate-500">
+              {s.label}
             </div>
-            <div className="mt-2.5 font-display text-3xl font-bold leading-none text-ink">
+            <div className="mt-2 text-3xl font-semibold leading-none text-ink">
               {s.value}
             </div>
-            <span className="mt-3 block h-0.5 w-10 bg-brand-500" />
           </div>
         ))}
       </div>
@@ -210,8 +199,8 @@ export default async function AthleteDetailPage({
 
       {/* training calendar */}
       <section className="mt-5">
-        <h2 className="mb-3 flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-[0.12em] text-ink">
-          <span className="h-3.5 w-1 rounded-full bg-brand-500" />
+        <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-ink">
+          <span className="h-2.5 w-2.5 rounded-full bg-brand-400" />
           Training calendar
         </h2>
         <CalendarView events={athleteEvents} isCoach={false} nowISO={nowISO} />
@@ -221,8 +210,8 @@ export default async function AthleteDetailPage({
         {/* feedback history */}
         <div className="space-y-4 lg:col-span-2">
           <section className="card p-5">
-            <h2 className="mb-3 flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-[0.12em] text-ink">
-              <span className="h-3.5 w-1 rounded-full bg-brand-500" />
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-ink">
+              <span className="h-2.5 w-2.5 rounded-full bg-brand-400" />
               Feedback history
             </h2>
             {withFeedback.length === 0 ? (
@@ -231,7 +220,7 @@ export default async function AthleteDetailPage({
                 description="When this athlete logs how a workout went, it shows up here, visible only to you."
               />
             ) : (
-              <ul className="divide-y divide-paper-100">
+              <ul className="divide-y divide-slate-100">
                 {withFeedback.map((a) => {
                   const f = a.feedback!;
                   return (
@@ -245,7 +234,7 @@ export default async function AthleteDetailPage({
                         </div>
                         <div className="flex items-center gap-2">
                           {f.effort != null && (
-                            <span className="rounded-md bg-paper-100 px-1.5 py-0.5 text-xs font-semibold text-slate-700">
+                            <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700">
                               RPE {f.effort}
                             </span>
                           )}
@@ -260,7 +249,7 @@ export default async function AthleteDetailPage({
                         </span>
                       )}
                       {f.feeling && (
-                        <p className="mt-1.5 text-sm text-slate-700">“{f.feeling}”</p>
+                        <p className="mt-1.5 text-sm text-slate-700">&quot;{f.feeling}&quot;</p>
                       )}
                       {f.soreness && (
                         <p className="mt-1 text-sm text-slate-500">
@@ -269,7 +258,7 @@ export default async function AthleteDetailPage({
                         </p>
                       )}
                       {f.notes && (
-                        <p className="mt-1 rounded-lg bg-brand-50 px-2.5 py-1.5 text-sm text-brand-900">
+                        <p className="mt-1 rounded-md bg-slate-50 px-2.5 py-1.5 text-sm text-slate-700">
                           {f.notes}
                         </p>
                       )}
@@ -328,8 +317,8 @@ export default async function AthleteDetailPage({
           )}
 
           <section className="card p-5">
-            <h2 className="mb-3 flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-[0.12em] text-ink">
-              <span className="h-3.5 w-1 rounded-full bg-brand-500" />
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-ink">
+              <span className="h-2.5 w-2.5 rounded-full bg-brand-400" />
               Schedule
             </h2>
             {upcoming.length === 0 && past.length === 0 ? (
@@ -338,7 +327,7 @@ export default async function AthleteDetailPage({
               <div className="space-y-4">
                 {upcoming.length > 0 && (
                   <div>
-                    <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    <div className="mb-1.5 text-xs font-medium text-slate-500">
                       Upcoming
                     </div>
                     <ul className="space-y-1.5">
@@ -363,7 +352,7 @@ export default async function AthleteDetailPage({
                 )}
                 {past.length > 0 && (
                   <div>
-                    <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    <div className="mb-1.5 text-xs font-medium text-slate-500">
                       Recent
                     </div>
                     <ul className="space-y-1.5">
