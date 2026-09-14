@@ -24,6 +24,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 import { workoutInstantForDay } from "../src/lib/date";
+import { usernameFromEmail } from "../src/lib/username";
 import { ATHLETES, WEEKS } from "../prisma/scad-data";
 import { cellForAthlete, classify, prNote, workoutLocation } from "../prisma/classify";
 
@@ -60,6 +61,9 @@ async function main() {
   /* ------------------------------------------------------- 1. account */
   const profile = {
     name: seed.name,
+    // What he signs in with; scripts/set-basic-logins.ts gives him the matching
+    // password along with everyone else's.
+    username: usernameFromEmail(seed.email),
     role: "ATHLETE",
     teamId: team.id,
     active: true,
