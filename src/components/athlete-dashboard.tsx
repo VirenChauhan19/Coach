@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   X,
 } from "lucide-react";
 import type { AssignmentDTO } from "@/lib/dto";
@@ -23,6 +25,12 @@ export type DayCell = {
   assignments: AssignmentDTO[];
 };
 
+/** One week of the strip. The server sends a window of these; see the dashboard page. */
+export type WeekBlock = {
+  startISO: string;
+  days: DayCell[];
+};
+
 function greeting(hour: number) {
   if (hour < 12) return "Good morning";
   if (hour < 17) return "Good afternoon";
@@ -34,7 +42,8 @@ export function AthleteDashboard({
   coachName,
   nowISO,
   today,
-  week,
+  weeks,
+  currentWeekIndex,
   viewIds,
   latestAnnouncement,
   unreadCount,
@@ -49,7 +58,8 @@ export function AthleteDashboard({
   coachName: string;
   nowISO: string;
   today: AssignmentDTO[];
-  week: DayCell[];
+  weeks: WeekBlock[];
+  currentWeekIndex: number;
   viewIds: string[];
   latestAnnouncement: { body: string; createdISO: string } | null;
   unreadCount: number;
@@ -60,11 +70,51 @@ export function AthleteDashboard({
   ezTarget: string | null;
   paces: Paces | null;
 }) {
-  const { fmtFullDate, fmtRelative, format, hourOfDay } = useDates();
+  const { fmtFullDate, fmtRelative, fmtDayMonth, format, hourOfDay } = useDates();
 
-  // Which day of the week strip is opened in place. null = none.
+  // Which week of the window the strip is showing, and which of its days is
+  // opened in place. Paging closes the open day: it belongs to the week you
+  // just left.
+  const [weekIndex, setWeekIndex] = useState(currentWeekIndex);
   const [openDay, setOpenDay] = useState<string | null>(null);
-  const selectedDay = week.find((d) => d.dateISO === openDay) ?? null;
+  const shown = weeks[weekIndex] ?? weeks[currentWeekIndex];
+  const selectedDay = shown.days.find((d) => d.dateISO === openDay) ?? null;
+
+  const goWeek = (delta: number) => {
+    const next = weekIndex + delta;
+    if (next < 0 || next >= weeks.length) return;
+    setWeekIndex(next);
+    setOpenDay(null);
+  };
+
+  // Swiping the strip sideways pages it, which is how this gets used on a
+  // phone. Anything mostly-vertical is the page scrolling and is left alone.
+  const swipeFrom = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    swipeFrom.current = { x: t.clientX, y: t.clientY };
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const from = swipeFrom.current;
+    swipeFrom.current = null;
+    if (!from) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - from.x;
+    const dy = t.clientY - from.y;
+    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    goWeek(dx < 0 ? 1 : -1);
+  };
+
+  const offset = weekIndex - currentWeekIndex;
+  const weekRange = `${fmtDayMonth(shown.startISO)} – ${fmtDayMonth(shown.days[6].dateISO)}`;
+  const weekLabel =
+    offset === 0
+      ? "This week"
+      : offset === 1
+        ? "Next week"
+        : offset === -1
+          ? "Last week"
+          : `Week of ${fmtDayMonth(shown.startISO)}`;
 
   // Mark shown assignments as "viewed" so the coach gets read receipts.
   useEffect(() => {
@@ -152,22 +202,60 @@ export function AthleteDashboard({
             )}
           </section>
 
-          {/* This week */}
+          {/* The week strip — pages across the window the server sent */}
           <section>
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="eyebrow">This week</h2>
-              <Link
-                href="/workouts"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:underline"
-              >
-                Full schedule <ArrowRight size={13} />
-              </Link>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => goWeek(-1)}
+                  disabled={weekIndex === 0}
+                  aria-label="Previous week"
+                  className="-ml-1 rounded-md p-1 text-slate-400 transition hover:bg-paper-100 hover:text-ink disabled:pointer-events-none disabled:opacity-30"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <h2 className="eyebrow truncate">{weekLabel}</h2>
+                <button
+                  type="button"
+                  onClick={() => goWeek(1)}
+                  disabled={weekIndex === weeks.length - 1}
+                  aria-label="Next week"
+                  className="rounded-md p-1 text-slate-400 transition hover:bg-paper-100 hover:text-ink disabled:pointer-events-none disabled:opacity-30"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                {offset !== 0 && (
+                  <button
+                    type="button"
+                    onClick={() => goWeek(-offset)}
+                    className="rounded-md px-1.5 py-0.5 text-xs font-semibold text-slate-500 transition hover:bg-paper-100 hover:text-ink"
+                  >
+                    Today
+                  </button>
+                )}
+                <Link
+                  href="/workouts"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:underline"
+                >
+                  Full schedule <ArrowRight size={13} />
+                </Link>
+              </div>
             </div>
             <p className="mb-2 text-xs text-slate-400">
-              Tap any day to see that session without leaving this page.
+              {offset === 0
+                ? "Tap any day to see that session. Swipe or use the arrows for other weeks."
+                : `${weekRange} · tap any day to see that session.`}
             </p>
-            <div className="grid grid-cols-7 gap-1.5 stagger">
-              {week.map((d) => {
+            <div
+              key={shown.startISO}
+              onTouchStart={onTouchStart}
+              onTouchEnd={onTouchEnd}
+              className="grid grid-cols-7 gap-1.5 stagger"
+            >
+              {shown.days.map((d) => {
                 const primary = d.assignments[0];
                 const type = primary?.workout.type ?? null;
                 const meta = type ? workoutMeta(type) : null;

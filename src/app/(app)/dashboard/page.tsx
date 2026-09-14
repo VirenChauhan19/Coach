@@ -5,10 +5,18 @@ import { dateHelpers } from "@/lib/date";
 import { WORKOUT_ORDER } from "@/lib/ordering";
 import { toAssignmentDTO, type AssignmentDTO } from "@/lib/dto";
 import { parsePaces } from "@/lib/utils";
-import { AthleteDashboard, type DayCell } from "@/components/athlete-dashboard";
+import { AthleteDashboard, type DayCell, type WeekBlock } from "@/components/athlete-dashboard";
 import { CoachDashboard } from "@/components/coach-dashboard";
 
 export const dynamic = "force-dynamic";
+
+// How far the dashboard's week strip can page, in weeks either side of this
+// one. Every session it shows is sent with the page, so paging costs no request
+// — this window is what keeps that affordable. Measured on the fullest athlete:
+// about 3 KB per week against a 12 KB dashboard, so five weeks lands near 27 KB.
+// Anything further back is what /workouts and /calendar are for.
+const WEEKS_BACK = 1;
+const WEEKS_AHEAD = 3;
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -53,7 +61,7 @@ export default async function DashboardPage() {
       prisma.assignment.findMany({
         where: {
           athleteId: user.id,
-          workout: { date: { gte: ws, lte: we } },
+          workout: { date: { gte: addDays(ws, -7 * WEEKS_BACK), lte: addDays(we, 7 * WEEKS_AHEAD) } },
         },
         include: { workout: true, feedback: true },
       }),
@@ -98,26 +106,37 @@ export default async function DashboardPage() {
 
     const today = todayAssignments.sort(teamFirst).map(toAssignmentDTO);
 
-    const week: DayCell[] = [];
-    for (let i = 0; i < 7; i++) {
-      const d = addDays(ws, i);
-      const key = dayKey(d);
-      const dayAssignments = weekAssignments
-        .filter((a) => dayKey(a.workout.date) === key)
-        .sort(teamFirst)
-        .map(toAssignmentDTO);
-      week.push({
-        dateISO: d.toISOString(),
-        isToday: isSameDay(d, now),
-        assignments: dayAssignments,
-      });
+    // One block per week in the window. The strip pages between them on the
+    // client, so tapping through to next week needs no round trip.
+    const weeks: WeekBlock[] = [];
+    for (let w = -WEEKS_BACK; w <= WEEKS_AHEAD; w++) {
+      const start = addDays(ws, w * 7);
+      const days: DayCell[] = [];
+      for (let i = 0; i < 7; i++) {
+        const d = addDays(start, i);
+        const key = dayKey(d);
+        days.push({
+          dateISO: d.toISOString(),
+          isToday: isSameDay(d, now),
+          assignments: weekAssignments
+            .filter((a) => dayKey(a.workout.date) === key)
+            .sort(teamFirst)
+            .map(toAssignmentDTO),
+        });
+      }
+      weeks.push({ startISO: start.toISOString(), days });
     }
 
-    const viewIds = [...weekAssignments, ...todayAssignments]
+    // Read receipts and the sessions-logged count both mean *this* week, not
+    // whichever week the strip happens to be showing. Paging forward to look at
+    // next week must not mark next week as seen.
+    const thisWeek = weekAssignments.filter((a) => a.workout.date >= ws && a.workout.date <= we);
+
+    const viewIds = [...thisWeek, ...todayAssignments]
       .filter((a) => a.status === "ASSIGNED" && a.workout.date <= todayEnd)
       .map((a) => a.id);
 
-    const nonRest = weekAssignments.filter((a) => a.workout.type !== "REST");
+    const nonRest = thisWeek.filter((a) => a.workout.type !== "REST");
     const weekStats = {
       completed: nonRest.filter((a) => a.status === "COMPLETED").length,
       total: nonRest.length,
@@ -129,7 +148,8 @@ export default async function DashboardPage() {
         coachName={team?.coach?.name ?? "your coach"}
         nowISO={now.toISOString()}
         today={today}
-        week={week}
+        weeks={weeks}
+        currentWeekIndex={WEEKS_BACK}
         viewIds={viewIds}
         latestAnnouncement={
           latestAnnouncementRow
