@@ -16,8 +16,8 @@ export default async function CalendarPage() {
   let athletes: { id: string; name: string }[] = [];
 
   // The calendar grid only ever renders these fields. Selecting them explicitly
-  // (rather than pulling whole rows) leaves the long prose columns — warmup,
-  // mainSet, cooldown, notes, pace, link — out of the payload entirely. Those
+  // (rather than pulling whole rows) leaves the long prose columns, warmup,
+  // mainSet, cooldown, notes, pace, link, out of the payload entirely. Those
   // are the bulkiest part of a workout and the calendar never shows them.
   const calendarFields = {
     id: true,

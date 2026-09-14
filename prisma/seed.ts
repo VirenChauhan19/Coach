@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 import { subHours } from "date-fns";
-// The same day math the app uses, resolved in the team's home zone — seeded
+// The same day math the app uses, resolved in the team's home zone, seeded
 // workouts then land on exactly the days the written plan says they do.
 import { dateHelpers, TEAM_TIME_ZONE, workoutInstantForDay } from "../src/lib/date";
 import { ATHLETES, WEEKS } from "./scad-data";
@@ -163,7 +163,7 @@ async function main() {
       if (!day) continue;
       // Noon UTC, the same anchor the API uses when a coach adds a workout.
       // Stepping in whole UTC days (rather than zoned ones) keeps every session
-      // at exactly 12:00Z — a zoned step would drift an hour across a DST edge.
+      // at exactly 12:00Z, a zoned step would drift an hour across a DST edge.
       const date = new Date(monday.getTime() + d * 24 * 60 * 60 * 1000);
 
       // PR (prehab/recovery/fuel) note for the day, plus where to be
@@ -172,7 +172,7 @@ async function main() {
 
       // Resolve the row each athlete follows, then group them by identical
       // text. Going athlete-first rather than row-first is what lets someone on
-      // a split assignment take one row on hard days and another on easy ones —
+      // a split assignment take one row on hard days and another on easy ones, 
       // and it means a row the coach wrote for a group nobody is in yet (D)
       // simply produces no workout instead of an orphan row.
       const byText = new Map<string, typeof athletes>();
@@ -355,22 +355,22 @@ async function main() {
   const gray = byEmail("gray@scadxc.com");
   const paige = byEmail("paige@scadxc.com");
 
-  // Viren (the demo athlete) — last coach message unread
+  // Viren (the demo athlete), last coach message unread
   await dm(true, viren.id, "Viren, your easy paces looked controlled this week — exactly what I want in Group B. How are the legs feeling?", subDays(new Date(), 4), true);
   await dm(false, viren.id, "Thanks coach! Feeling good, the 40-50 min runs are settling in.", subHours(subDays(new Date(), 4), -1), true);
   await dm(true, viren.id, "Good. Keep the easy days easy and we'll sharpen later. Nice work logging your feedback.", subHours(new Date(), 3), false);
 
-  // Ryan (Group A) — unread coach message
+  // Ryan (Group A), unread coach message
   await dm(true, ryan.id, "Ryan, you're in Group A this block — 90-100 long run, 50-60 easy. Build gradually, no hero days early.", subDays(new Date(), 2), false);
 
-  // Corinne reaching out — unread for the coach
+  // Corinne reaching out, unread for the coach
   await dm(false, corinne.id, "Coach, I felt a twinge in my left shin on today's run. Should I cross-train tomorrow?", subHours(new Date(), 5), false);
 
-  // Gray — read exchange about XT
+  // Gray, read exchange about XT
   await dm(true, gray.id, "Gray, let's add 1-2 cross-training sessions a week to manage load. I'll note it on your plan.", subDays(new Date(), 3), true);
   await dm(false, gray.id, "Sounds good, will do. Thanks coach.", subHours(subDays(new Date(), 3), -2), true);
 
-  // Paige — unread for coach
+  // Paige, unread for coach
   await dm(false, paige.id, "Coach, can we go over my 5K goal pace before the first meet?", subHours(new Date(), 8), false);
 
   // ---------- team chat (GROUP): makes the app feel lived-in ----------

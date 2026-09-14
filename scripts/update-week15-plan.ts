@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 // One-off: push the coach's "Training, 9-14.xlsx" workbook onto the live plan.
 //
-// Two things changed in it. Week 15 (9/14-9/20) was restructured — Monday went
+// Two things changed in it. Week 15 (9/14-9/20) was restructured, Monday went
 // from a rest day to 5-7 x 5' at tempo, Wednesday's "TEMPO WO #2" placeholder
-// became 8-10 x 90" at 8K/6K, and Tuesday's strides were dropped — and the pace
+// became 8-10 x 90" at 8K/6K, and Tuesday's strides were dropped, and the pace
 // chart was re-cut for all but two athletes, gaining a second tempo zone (LT-2)
 // and a cross-training duration target.
 //
@@ -12,10 +12,10 @@
 // its replacement by the exact set of athletes assigned to it, and updated
 // rather than recreated, so assignments, view state and logged feedback stay
 // attached. If a day's athletes don't line up the script refuses to write
-// anything — a silent create/delete would drop that history on the floor.
+// anything, a silent create/delete would drop that history on the floor.
 //
-// New values come from WEEKS/ATHLETES + classify() — the same path the seed
-// uses — so a future reseed produces exactly what this writes.
+// New values come from WEEKS/ATHLETES + classify(), the same path the seed
+// uses, so a future reseed produces exactly what this writes.
 //
 // Dry run:  npx tsx scripts/update-week15-plan.ts
 // Apply:    npx tsx scripts/update-week15-plan.ts --apply

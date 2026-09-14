@@ -174,7 +174,7 @@ export default async function AthleteDetailPage({
         </div>
       </div>
 
-      {/* stats — editorial scoreboard */}
+      {/* stats, editorial scoreboard */}
       <div className="mt-4 grid grid-cols-3 gap-3">
         {[
           { label: "Completion", value: `${completionRate}%` },
@@ -198,7 +198,7 @@ export default async function AthleteDetailPage({
         ))}
       </div>
 
-      {/* coach edits the private per-athlete note for each upcoming workout —
+      {/* coach edits the private per-athlete note for each upcoming workout, 
           kept high on the page so it's the first thing the coach reaches */}
       <div className="mt-5">
         <AthleteNoteEditor

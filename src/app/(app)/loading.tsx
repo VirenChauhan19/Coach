@@ -1,5 +1,5 @@
 // Shown instantly while a route's server data loads (Next.js Suspense fallback).
-// The sidebar stays put — only this content area swaps to a shimmer skeleton —
+// The sidebar stays put, only this content area swaps to a shimmer skeleton, 
 // so navigation feels immediate even when the database is slow to respond.
 export default function Loading() {
   return (

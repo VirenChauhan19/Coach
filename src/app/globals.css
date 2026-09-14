@@ -15,8 +15,8 @@
     -moz-osx-font-smoothing: grayscale;
   }
   /* The bottom nav is position:fixed, which anchors it to the *layout* viewport.
-     Rubber-banding the document — the overscroll bounce you get swiping down at
-     the top of a page — moves the visual viewport out from under it, and the bar
+     Rubber-banding the document, the overscroll bounce you get swiping down at
+     the top of a page, moves the visual viewport out from under it, and the bar
      visibly flies up the screen before settling back. Refusing the bounce is
      what keeps pinned chrome pinned; it also turns off pull-to-refresh, which an
      installed app has no use for. */
@@ -66,8 +66,8 @@
 
 @layer utilities {
   /* Full height of the viewport you can actually see. iOS resolves 100vh to the
-     *large* viewport — the height the page would have with the browser chrome
-     hidden — so a 100vh shell is taller than the screen whenever that chrome is
+     *large* viewport, the height the page would have with the browser chrome
+     hidden, so a 100vh shell is taller than the screen whenever that chrome is
      showing, and everything pinned to the bottom sits below the fold. 100dvh
      tracks the real thing; the 100vh line is the fallback for anything old
      enough not to know dvh. */
@@ -176,7 +176,7 @@
     animation-delay: 225ms;
   }
 
-  /* Timeline lists that run long — a full season is several hundred cards.
+  /* Timeline lists that run long, a full season is several hundred cards.
      `.stagger` is wrong at that length: it hands an entrance animation to every
      single child, so the workouts screen started hundreds of them at once on a
      phone. This keeps the entrance for the cards you can actually see, and lets

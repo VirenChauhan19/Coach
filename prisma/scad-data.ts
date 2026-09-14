@@ -5,8 +5,8 @@
 // replaced the "3K/5K WO #1-#4" placeholders with the prescribed rep sessions.
 //
 // Week 15 (9/14-9/20), every pace target and every mileage group updated from
-// "Training, 9-14.xlsx". That workbook restructured race week — Monday became a
-// tempo-rep session and Wednesday a set of 90" reps — and introduced a fourth
+// "Training, 9-14.xlsx". That workbook restructured race week, Monday became a
+// tempo-rep session and Wednesday a set of 90" reps, and introduced a fourth
 // group, D, which only appears in the weeks the coach has written since.
 //
 // `group` is the row an athlete takes their *volume* from. `workoutGroup` is
@@ -15,8 +15,8 @@
 // Booker and Ryan have dropped off the chart and keep their previous entries.
 // Aadhick is listed "TBD-INJ", which names no row, so he holds at B.
 //
-// Week 15 also carries that workbook's logistics rows — practice `time` and
-// `loc`, the `lift` window and the evening team `meeting` — which earlier
+// Week 15 also carries that workbook's logistics rows, practice `time` and
+// `loc`, the `lift` window and the evening team `meeting`, which earlier
 // weeks predate. `liftTime` is the athlete's own slot inside that window;
 // lifting happens on workout days.
 

@@ -9,7 +9,7 @@
 // to these workouts intact.
 //
 // A/B/C get identical text on these days, so each one is a single TEAM workout.
-// New values come from WEEKS + classify() — the same path the seed uses — so a
+// New values come from WEEKS + classify(), the same path the seed uses, so a
 // future reseed produces exactly what this writes.
 //
 // Dry run:  npx tsx scripts/update-phase2-workouts.ts

@@ -16,7 +16,7 @@ type NoteItem = {
 
 // Coach-only: add/edit the private "note just for you" an athlete sees on a
 // specific workout. Lives on the athlete detail page so it's one tap from the
-// roster — pick an athlete, jump to the session, type the note.
+// roster, pick an athlete, jump to the session, type the note.
 export function AthleteNoteEditor({
   athleteFirstName,
   upcoming,

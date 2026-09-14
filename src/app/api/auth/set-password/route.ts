@@ -9,8 +9,8 @@ import {
 } from "@/lib/auth";
 
 // First-login password set for provisioned accounts. Unlike PATCH /api/me, this
-// does NOT require the current password — the user has just authenticated with
-// their temporary one — but it is ONLY usable while `mustChangePassword` is set,
+// does NOT require the current password, the user has just authenticated with
+// their temporary one, but it is ONLY usable while `mustChangePassword` is set,
 // so it can't be abused as a no-current-password change for normal accounts.
 export async function POST(req: NextRequest) {
   try {
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       select: { sessionVersion: true },
     });
 
-    // Keep this device signed in under the new session version — carrying the
+    // Keep this device signed in under the new session version, carrying the
     // detected timezone across, so a password change doesn't reset it.
     await setSessionCookie(
       user.id,

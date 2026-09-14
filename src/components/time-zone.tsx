@@ -10,7 +10,7 @@ const TimeZoneContext = createContext<string>(TEAM_TIME_ZONE);
  * Supplies the viewer's timezone to every client component.
  *
  * The value comes from the server (read out of the session), NOT from the
- * browser — that's the point. If the client picked its own zone here, the first
+ * browser, that's the point. If the client picked its own zone here, the first
  * client render would disagree with the server's HTML and React would throw a
  * hydration mismatch, which is how dates end up visibly flickering to a
  * different day. Correcting a stale zone is <TimeZoneSync/>'s job instead: it
@@ -54,7 +54,7 @@ export function browserTimeZone(): string | null {
  * browser's zone differs from what the server rendered with, it saves the real
  * one and refreshes, and the next render is correct everywhere.
  *
- * `sessionZone` is the raw session value — null means "never detected", which
+ * `sessionZone` is the raw session value, null means "never detected", which
  * is why it's distinguished from the zone actually used for rendering.
  */
 export function TimeZoneSync({ sessionZone }: { sessionZone: string | null }) {

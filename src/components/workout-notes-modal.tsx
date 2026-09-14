@@ -15,7 +15,7 @@ export type WorkoutNoteRow = {
 
 // Workout-centric way to add the private per-athlete note: open it on a workout
 // and annotate any assigned athlete inline. Same data as the athlete page
-// (Assignment.customNote) — edit from whichever side is faster.
+// (Assignment.customNote), edit from whichever side is faster.
 export function WorkoutNotesModal({
   open,
   onClose,

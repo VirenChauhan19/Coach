@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-// One-off: put the logistics rows of "Training, 9-14.xlsx" onto the live plan —
+// One-off: put the logistics rows of "Training, 9-14.xlsx" onto the live plan, 
 // practice time and place, the evening team meeting, and each athlete's slot in
 // the lift window.
 //
@@ -12,7 +12,7 @@
 // live on the athlete because the sheet schedules one window for the whole
 // squad ("10:00, 2:00, 5:00 (SEE E-MAIL)") and splits it by name separately.
 //
-// It refuses to overwrite a note that nobody generated — if the text in the
+// It refuses to overwrite a note that nobody generated, if the text in the
 // database is neither the old plan note nor the new one, someone edited it by
 // hand and it is reported instead.
 //

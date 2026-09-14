@@ -9,7 +9,7 @@ const STEP = 20;
  * Renders a long list a chunk at a time.
  *
  * A full season is several hundred sessions, and server-rendering every card up
- * front put megabytes of markup into the initial HTML — the single biggest
+ * front put megabytes of markup into the initial HTML, the single biggest
  * reason the Workouts screen was slow to arrive on a phone. Nothing is dropped:
  * the section headers still count the real total, and the rest unfolds on
  * demand, instantly, because the data is already in memory.

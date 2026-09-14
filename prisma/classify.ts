@@ -16,7 +16,7 @@ const RACES = new Set([
 
 function durationLabel(text: string): string | null {
   const m = text.match(/^(\d+)-(\d+)'/);
-  return m ? `${m[1]}–${m[2]} min` : null;
+  return m ? `${m[1]}-${m[2]} min` : null;
 }
 
 function raceTitle(t: string): string {
@@ -36,14 +36,14 @@ function raceTitle(t: string): string {
 }
 
 // A rep session names its target zone after an "@": "@ ST-MT" (short to medium
-// tempo), "@ 8K/6K", "@ 3K-5K". It has to be read rather than assumed — five
+// tempo), "@ 8K/6K", "@ 3K-5K". It has to be read rather than assumed, five
 // minute reps at tempo and one minute reps at 3K are different sessions, and
 // labelling every rep session 3K-5K sends the team out half a minute per mile
 // too fast.
 const REP_ZONES: Record<string, string> = {
   ST: "Short tempo effort",
   MT: "Medium tempo effort",
-  "ST-MT": "Short–medium tempo effort",
+  "ST-MT": "Short to medium tempo effort",
   MILE: "Mile effort on reps",
   GP: "Goal race pace",
 };
@@ -52,7 +52,7 @@ function repPace(t: string): string {
   const zone = (t.match(/@\s*([A-Z0-9]+(?:[-/][A-Z0-9]+)*)/)?.[1] ?? "").replace(/\//g, "-");
   if (REP_ZONES[zone]) return REP_ZONES[zone];
   const races = zone.split("-").filter((p) => /^\d+K$/.test(p));
-  return races.length ? `${races.join("–")} effort on reps` : "3K–5K effort on reps";
+  return races.length ? `${races.join(" to ")} effort on reps` : "3K to 5K effort on reps";
 }
 
 function woTitle(raw: string): string {
@@ -70,7 +70,7 @@ export type DayCells = { A: string; B: string; C: string; D?: string };
  * The cell one athlete follows on a given day.
  *
  * Nearly everyone takes the whole day from a single row. The coach also splits
- * it — "VOL: C, WO: D" means volume from row C, quality sessions from row D —
+ * it, "VOL: C, WO: D" means volume from row C, quality sessions from row D, 
  * so the workout row wins on hard days and the volume row on everything else.
  * A workout row the coach hasn't written for that week falls back to volume.
  */
@@ -100,7 +100,7 @@ export function prNote(pr: string | undefined, meeting?: string): string | null 
   const bits: string[] = [];
   if (pr && pr !== "NONE" && pr !== "TRAINING RECAP") bits.push(pr);
   if (pr && pr.includes("RECAP")) bits.push("Submit your weekly training recap.");
-  if (meeting && meeting !== "NA") bits.push(`Team meeting — ${meeting}`);
+  if (meeting && meeting !== "NA") bits.push(`Team meeting, ${meeting}`);
   return bits.length ? bits.join(" · ") : null;
 }
 
@@ -133,7 +133,7 @@ export function classify(text: string, lrTarget: string): Classified | null {
     return {
       type: "RACE",
       title: raceTitle(text),
-      mainSet: "Race day — warm up early, pin numbers, line up ready to compete.",
+      mainSet: "Race day. Warm up early, pin numbers, line up ready to compete.",
       distance: null,
       pace: "Race effort",
     };
@@ -176,7 +176,7 @@ export function classify(text: string, lrTarget: string): Classified | null {
   if (/^\d+-\d+'\s*EZ$/.test(t)) {
     const isLong = text.startsWith(lrTarget + "'");
     return isLong
-      ? { type: "LONG_RUN", title: "Long Run", mainSet: null, distance: dist, pace: "Easy–moderate" }
+      ? { type: "LONG_RUN", title: "Long Run", mainSet: null, distance: dist, pace: "Easy to moderate" }
       : { type: "EASY", title: "Easy Run", mainSet: null, distance: dist, pace: "Easy" };
   }
 

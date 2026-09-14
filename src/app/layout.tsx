@@ -54,7 +54,7 @@ export default function RootLayout({
           />
         )}
         {children}
-        {/* Firebase Analytics — production only (dev CSP blocks the GA beacons,
+        {/* Firebase Analytics, production only (dev CSP blocks the GA beacons,
             and we don't want localhost traffic polluting measurement). */}
         {process.env.NODE_ENV === "production" && <FirebaseAnalytics />}
       </body>

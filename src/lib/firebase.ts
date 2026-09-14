@@ -1,8 +1,8 @@
-// Firebase web app — client-side SDK, loaded lazily.
+// Firebase web app, client-side SDK, loaded lazily.
 //
 // These values are the public Firebase web config (safe to ship to the browser;
 // access is enforced by Firebase security rules, not by hiding this key). Used
-// here only for Analytics — the app's own auth/data run on the Next.js server.
+// here only for Analytics, the app's own auth/data run on the Next.js server.
 //
 // `firebase/app` is deliberately NOT imported at the top level. A static import
 // here would pull the SDK into the first-load JavaScript of every single page,

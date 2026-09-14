@@ -90,13 +90,16 @@ export function AthleteDashboard({
   // Swiping the strip sideways pages it, which is how this gets used on a
   // phone. Anything mostly-vertical is the page scrolling and is left alone.
   // The swipe starts on top of a day button, and some browsers still deliver
-  // the click afterwards, so a completed swipe arms a flag that swallows it —
+  // the click afterwards, so a completed swipe arms a flag that swallows it, 
   // otherwise paging the week also opens whichever day you started the swipe on.
   const swipeFrom = useRef<{ x: number; y: number } | null>(null);
   const swiped = useRef(false);
   const onTouchStart = (e: React.TouchEvent) => {
     const t = e.touches[0];
     swipeFrom.current = { x: t.clientX, y: t.clientY };
+    // Most browsers suppress the click after a real drag, which would otherwise
+    // leave the flag armed and eat the next honest tap. Every new touch clears it.
+    swiped.current = false;
   };
   const onTouchEnd = (e: React.TouchEvent) => {
     const from = swipeFrom.current;
@@ -119,7 +122,7 @@ export function AthleteDashboard({
   };
 
   const offset = weekIndex - currentWeekIndex;
-  const weekRange = `${fmtDayMonth(shown.startISO)} – ${fmtDayMonth(shown.days[6].dateISO)}`;
+  const weekRange = `${fmtDayMonth(shown.startISO)} to ${fmtDayMonth(shown.days[6].dateISO)}`;
   const weekLabel =
     offset === 0
       ? "This week"
@@ -215,7 +218,7 @@ export function AthleteDashboard({
             )}
           </section>
 
-          {/* The week strip — pages across the window the server sent */}
+          {/* The week strip, pages across the window the server sent */}
           <section>
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="flex min-w-0 items-center gap-0.5">
@@ -282,7 +285,7 @@ export function AthleteDashboard({
                     aria-expanded={isOpen}
                     // Only points at the panel while it exists.
                     aria-controls={isOpen ? "week-day-detail" : undefined}
-                    aria-label={`${fmtFullDate(d.dateISO)} — ${
+                    aria-label={`${fmtFullDate(d.dateISO)}: ${
                       d.assignments.length === 0
                         ? "nothing scheduled"
                         : d.assignments.map((a) => a.workout.title).join(", ")

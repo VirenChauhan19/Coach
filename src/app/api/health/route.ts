@@ -13,7 +13,7 @@ export function GET() {
       at: new Date().toISOString(),
       // Cloud Run stamps every deployed revision with a unique name. Reporting
       // it here is the only way to tell from outside whether a push has
-      // actually rolled out yet — the pages that change are behind a login, and
+      // actually rolled out yet, the pages that change are behind a login, and
       // static asset hashes don't move unless that page's own code changed.
       revision: process.env.K_REVISION ?? "unknown",
     },

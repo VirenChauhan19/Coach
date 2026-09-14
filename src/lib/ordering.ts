@@ -1,7 +1,7 @@
 // One total order for workouts, shared by every query and every client-side sort.
 //
 // A workout's date is a calendar day, so all the sessions on a given day carry
-// the identical timestamp — 99 of the 168 days on the current schedule hold two
+// the identical timestamp, 99 of the 168 days on the current schedule hold two
 // or three. `ORDER BY date` alone therefore leaves their relative order
 // completely up to the database, which is free to return them differently
 // between queries: a changed query plan, a parallel scan, or simply rows having
@@ -9,7 +9,7 @@
 // sessions swapping places for no reason.
 //
 // These keys give every list one deterministic order. `id` last means the order
-// is fully specified no matter what — it can never fall back to physical row
+// is fully specified no matter what, it can never fall back to physical row
 // order.
 
 import type { Prisma } from "@prisma/client";
@@ -77,7 +77,7 @@ export function compareWorkouts(a: Sortable, b: Sortable): number {
   );
 }
 
-/** Same order, newest day first — the day flips, the within-day order does not. */
+/** Same order, newest day first, the day flips, the within-day order does not. */
 export function compareWorkoutsDesc(a: Sortable, b: Sortable): number {
   return (
     b.dateISO.localeCompare(a.dateISO) ||

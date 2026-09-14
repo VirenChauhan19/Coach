@@ -50,7 +50,7 @@ const pageTitle = (pathname: string) => {
 };
 
 // Trailing slot for each nav item. Uses Next's pending-navigation state so a
-// spinner appears the instant a link is clicked — the rail feels responsive
+// spinner appears the instant a link is clicked, the rail feels responsive
 // even while the (remote) database is still resolving the next page.
 function NavTrailing({ active, badge }: { active: boolean; badge?: number }) {
   const { pending } = useLinkStatus();

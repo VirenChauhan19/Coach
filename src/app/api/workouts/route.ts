@@ -7,7 +7,7 @@ import { getViewerTimeZone } from "@/lib/auth";
 
 async function parseDate(input: unknown): Promise<Date> {
   // The day the coach picked, stored at noon UTC. Resolved against the coach's
-  // own timezone — never the server's, which is UTC in production.
+  // own timezone, never the server's, which is UTC in production.
   const { parseWorkoutDate } = dateHelpers(await getViewerTimeZone());
   const date = parseWorkoutDate(input);
   if (!date) throw new ApiError(400, "Please choose a valid date.");

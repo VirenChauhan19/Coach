@@ -759,7 +759,7 @@ export function MessagesView({
         )}
       </div>
 
-      {/* lightbox — portalled to <body> so it covers the viewport on mobile */}
+      {/* lightbox, portalled to <body> so it covers the viewport on mobile */}
       {lightbox && (
         <Portal>
           <div

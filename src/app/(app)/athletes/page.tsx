@@ -23,7 +23,7 @@ export default async function AthletesPage() {
 
   // All four queries are independent, so they go out together rather than one
   // after another. The three aggregates are grouped in the database instead of
-  // pulling every matching row back and counting them here — the roster only
+  // pulling every matching row back and counting them here, the roster only
   // ever displays one number per athlete.
   const [athletes, weekRows, needsRows, feedbackRows] = await Promise.all([
     prisma.user.findMany({

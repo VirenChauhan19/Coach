@@ -60,7 +60,7 @@ export function Modal({
             SIZES[size]
           )}
         >
-          {/* grab handle — bottom-sheet affordance on mobile */}
+          {/* grab handle, bottom-sheet affordance on mobile */}
           <div className="mx-auto mt-2.5 h-1.5 w-10 shrink-0 rounded-full bg-ink/15 sm:hidden" />
           {(title || description) && (
             <div className="flex items-start justify-between gap-4 border-b border-ink/10 bg-paper-50 px-5 py-4">

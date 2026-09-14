@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 // How far the dashboard's week strip can page, in weeks either side of this
 // one. Every session it shows is sent with the page, so paging costs no request
-// — this window is what keeps that affordable. Measured on the fullest athlete:
+//, this window is what keeps that affordable. Measured on the fullest athlete:
 // about 3 KB per week against a 12 KB dashboard, so five weeks lands near 27 KB.
 // Anything further back is what /workouts and /calendar are for.
 const WEEKS_BACK = 1;
@@ -183,7 +183,7 @@ export default async function DashboardPage() {
 
   // Fetch everything the dashboard needs in parallel. These queries are
   // independent, so running them concurrently turns ~7 sequential round-trips
-  // to the database into one — that latency was the bulk of the post-login wait.
+  // to the database into one, that latency was the bulk of the post-login wait.
   const [
     team,
     athleteRows,
@@ -200,7 +200,7 @@ export default async function DashboardPage() {
       select: { id: true, name: true, mileageGroup: true },
       orderBy: { name: "asc" },
     }),
-    // Week completion (non-rest team assignments) — only count athletes still on
+    // Week completion (non-rest team assignments), only count athletes still on
     // the active roster so removed athletes don't drag the numbers.
     prisma.assignment.findMany({
       where: {

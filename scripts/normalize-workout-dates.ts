@@ -12,7 +12,7 @@
  * UTC-11 to UTC+11 resolves it to the same day.
  *
  * The intended day is whatever the row currently reads as in the team's home
- * zone — that is the day the coach meant when they created it.
+ * zone, that is the day the coach meant when they created it.
  *
  * Dry run (default):  npx tsx scripts/normalize-workout-dates.ts
  * Apply:              npx tsx scripts/normalize-workout-dates.ts --apply
@@ -52,7 +52,7 @@ async function main() {
   }
   if (changes.length > 20) console.log(`  ... and ${changes.length - 20} more`);
 
-  // The day each session lands on must not move — only the time-of-day within
+  // The day each session lands on must not move, only the time-of-day within
   // it. If any row would change days, something is wrong; stop rather than
   // silently reschedule somebody's training.
   const dayMoves = changes.filter((w) => dayKey(w.date) !== dayKey(w.target));

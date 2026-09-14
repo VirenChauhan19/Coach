@@ -138,7 +138,7 @@ const readSession = cache(async (): Promise<Session | null> => {
 });
 
 /**
- * The timezone to render this request's dates in — where the viewer logged in
+ * The timezone to render this request's dates in, where the viewer logged in
  * from. Falls back to the team's zone for a session that predates detection.
  * Cached per-request, like getCurrentUser.
  */

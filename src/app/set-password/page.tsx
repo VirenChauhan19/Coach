@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function SetPasswordPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  // Already set their own password — nothing to do here.
+  // Already set their own password, nothing to do here.
   if (!user.mustChangePassword) redirect("/dashboard");
   return <SetPasswordForm name={user.name} />;
 }

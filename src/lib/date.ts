@@ -5,7 +5,7 @@
 //
 // The one thing that must NOT depend on anyone's timezone is the machine doing
 // the rendering. Left to the ambient clock, production (Cloud Run, UTC) rolls
-// over to "tomorrow" at 8 PM Eastern — so the dashboard would show tomorrow's
+// over to "tomorrow" at 8 PM Eastern, so the dashboard would show tomorrow's
 // session every evening and the training week would flip on Sunday night.
 //
 // So nothing here reads the ambient zone. `dateHelpers(zone)` returns the whole
@@ -59,7 +59,7 @@ export function safeTimeZone(zone: unknown): string {
  * Anchored at **12:00 UTC**, which is deliberate and timezone-independent:
  * the stored value is a pure function of the day the coach picked, so it can't
  * drift with where the coach happened to be. Noon UTC also maximizes agreement
- * when it's read back — every zone from UTC-11 to UTC+11 resolves it to the
+ * when it's read back, every zone from UTC-11 to UTC+11 resolves it to the
  * same calendar day, which is everywhere this team could plausibly be.
  */
 export function workoutInstantForDay(key: string): Date {
@@ -108,7 +108,7 @@ function build(zone: string) {
       return i === "6" || i === "7";
     },
 
-    /* comparisons — two instants share a day exactly when they render as one */
+    /* comparisons, two instants share a day exactly when they render as one */
     isSameDay: (a: DInput, b: DInput) => dayKey(a) === dayKey(b),
     isSameMonth: (a: DInput, b: DInput) => monthKey(a) === monthKey(b),
     isToday,
