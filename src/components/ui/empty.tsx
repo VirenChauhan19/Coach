@@ -16,7 +16,11 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-start justify-center rounded-lg border border-dashed border-ink/15 bg-white/70 px-5 py-8 text-left shadow-sm",
+        // bg-paper, not bg-white/70: dark mode is a set of overrides keyed to
+        // utility names, and an opacity variant generates a class none of them
+        // match — which left this reading as a light grey slab inside a dark
+        // card. As a token it is a slightly recessed well in both themes.
+        "flex flex-col items-start justify-center rounded-lg border border-dashed border-ink/15 bg-paper px-5 py-8 text-left shadow-sm",
         className
       )}
     >
