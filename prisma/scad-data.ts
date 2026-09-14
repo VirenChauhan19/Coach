@@ -4,15 +4,19 @@
 // Phase 2 (weeks 9-12) updated from "SCAD XC 2026 phase 2.xlsx": the coach
 // replaced the "3K/5K WO #1-#4" placeholders with the prescribed rep sessions.
 //
-// Week 15 (9/14-9/20) and every pace target updated from "Training, 9-14.xlsx".
-// That workbook restructured race week — Monday became a tempo-rep session and
-// Wednesday a set of 90" reps — and introduced a fourth mileage group, D, which
-// only appears in the weeks the coach has written since. Mileage-group
-// assignments and the roster are unchanged; Booker and Ryan have dropped off
-// the chart and keep their previous targets.
+// Week 15 (9/14-9/20), every pace target and every mileage group updated from
+// "Training, 9-14.xlsx". That workbook restructured race week — Monday became a
+// tempo-rep session and Wednesday a set of 90" reps — and introduced a fourth
+// group, D, which only appears in the weeks the coach has written since.
+//
+// `group` is the row an athlete takes their *volume* from. `workoutGroup` is
+// the row they take *quality sessions* from, present only when the coach splits
+// the two ("VOL: C, WO: D" on the chart); see cellForAthlete() in classify.ts.
+// Booker and Ryan have dropped off the chart and keep their previous entries.
+// Aadhick is listed "TBD-INJ", which names no row, so he holds at B.
 
 export type Paces = { ez: string; tempo: string; tempoMed?: string; k10: string; k8: string; k6: string; k5: string; k3: string; mile: string };
-export type AthleteSeed = { name: string; email: string; group: string; lrTarget: string; ezTarget: string; xtTarget?: string; doubleFreq: string; xtFreq: string; paces: Paces };
+export type AthleteSeed = { name: string; email: string; group: string; workoutGroup?: string; lrTarget: string; ezTarget: string; xtTarget?: string; doubleFreq: string; xtFreq: string; paces: Paces };
 export type DayPlan = { A: string; B: string; C: string; D?: string; PR: string };
 export type WeekPlan = { phase: number; week: number; theme: string; start: string; days: DayPlan[] };
 
@@ -100,7 +104,7 @@ export const ATHLETES: AthleteSeed[] = [
   {
     "name": "Sam",
     "email": "sam@scadxc.com",
-    "group": "C",
+    "group": "B",
     "lrTarget": "65-75",
     "ezTarget": "40-50",
     "xtTarget": "60-75",
@@ -184,7 +188,7 @@ export const ATHLETES: AthleteSeed[] = [
   {
     "name": "Viren",
     "email": "viren@scadxc.com",
-    "group": "B",
+    "group": "C",
     "lrTarget": "80-90",
     "ezTarget": "40-50",
     "xtTarget": "60-75",
@@ -205,7 +209,8 @@ export const ATHLETES: AthleteSeed[] = [
   {
     "name": "Meredith",
     "email": "meredith@scadxc.com",
-    "group": "B",
+    "group": "C",
+    "workoutGroup": "D",
     "lrTarget": "80-90",
     "ezTarget": "40-50",
     "xtTarget": "60-75",
@@ -353,6 +358,7 @@ export const ATHLETES: AthleteSeed[] = [
     "name": "Paige",
     "email": "paige@scadxc.com",
     "group": "C",
+    "workoutGroup": "D",
     "lrTarget": "65-75",
     "ezTarget": "30-40",
     "xtTarget": "40-60",

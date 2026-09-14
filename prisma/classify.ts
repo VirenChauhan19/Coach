@@ -63,6 +63,33 @@ function woTitle(raw: string): string {
     .join(" ");
 }
 
+/** The four mileage rows of one day on the coach's grid. */
+export type DayCells = { A: string; B: string; C: string; D?: string };
+
+/**
+ * The cell one athlete follows on a given day.
+ *
+ * Nearly everyone takes the whole day from a single row. The coach also splits
+ * it — "VOL: C, WO: D" means volume from row C, quality sessions from row D —
+ * so the workout row wins on hard days and the volume row on everything else.
+ * A workout row the coach hasn't written for that week falls back to volume.
+ */
+export function cellForAthlete(
+  day: DayCells,
+  volumeGroup: string,
+  workoutGroup?: string | null
+): string | null {
+  const cells: Record<string, string | undefined> = { A: day.A, B: day.B, C: day.C, D: day.D };
+  const quality = workoutGroup ? cells[workoutGroup] : undefined;
+  if (quality) {
+    // classify()'s lrTarget only separates LONG_RUN from EASY, and neither is a
+    // quality session, so passing a blank one cannot change this answer.
+    const c = classify(quality, "");
+    if (c && (c.type === "WORKOUT" || c.type === "RACE")) return quality;
+  }
+  return cells[volumeGroup] ?? quality ?? null;
+}
+
 /**
  * The day's PR column (fuel / lift / prehab / recovery) as the note that goes
  * on every workout that day. Here rather than in seed.ts for the same reason

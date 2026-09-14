@@ -7,7 +7,7 @@ import { subHours } from "date-fns";
 // workouts then land on exactly the days the written plan says they do.
 import { dateHelpers, TEAM_TIME_ZONE, workoutInstantForDay } from "../src/lib/date";
 import { ATHLETES, WEEKS } from "./scad-data";
-import { classify, prNote } from "./classify";
+import { cellForAthlete, classify, prNote } from "./classify";
 
 const { startOfDay, isSameDay, subDays } = dateHelpers(TEAM_TIME_ZONE);
 
@@ -88,7 +88,7 @@ async function main() {
   });
 
   console.log(`Creating ${ATHLETES.length} athletes...`);
-  const athletes: { id: string; name: string; email: string; group: string }[] = [];
+  const athletes: { id: string; name: string; email: string; group: string; workoutGroup?: string; lrTarget: string }[] = [];
   for (const a of ATHLETES) {
     const seed = hash(a.email);
     const athlete = await prisma.user.create({
@@ -106,12 +106,19 @@ async function main() {
         lastReadAnnouncementsAt: subDays(new Date(), 2),
       },
     });
-    athletes.push({ ...athlete, group: a.group });
+    athletes.push({ ...athlete, group: a.group, workoutGroup: a.workoutGroup, lrTarget: a.lrTarget });
   }
 
-  // long-run target per group (uniform within a group on the chart)
-  const GROUP_LR: Record<string, string> = {};
-  for (const a of ATHLETES) GROUP_LR[a.group] = a.lrTarget;
+  // Whether a cell is that day's long run depends on the athlete's own target,
+  // but a cell is one shared workout row, so it needs one answer. Groups are
+  // near-uniform on the chart (one athlete sits in a group with a longer target
+  // than the rest), so the commonest target among the athletes on a cell is the
+  // one that matches everybody it can.
+  const modeLrTarget = (group: { lrTarget: string }[]): string => {
+    const counts = new Map<string, number>();
+    for (const a of group) counts.set(a.lrTarget, (counts.get(a.lrTarget) ?? 0) + 1);
+    return [...counts].sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0]))[0]?.[0] ?? "90-100";
+  };
 
   const today = startOfDay(new Date());
 
@@ -155,24 +162,22 @@ async function main() {
       // PR (prehab/recovery/fuel) note for the day
       const notes = prNote(day.PR);
 
-      // group the per-group cells by identical text
-      const cells: Record<string, string | undefined> = { A: day.A, B: day.B, C: day.C, D: day.D };
-      const byText = new Map<string, string[]>();
-      for (const g of ["A", "B", "C", "D"]) {
-        const txt = cells[g];
+      // Resolve the row each athlete follows, then group them by identical
+      // text. Going athlete-first rather than row-first is what lets someone on
+      // a split assignment take one row on hard days and another on easy ones —
+      // and it means a row the coach wrote for a group nobody is in yet (D)
+      // simply produces no workout instead of an orphan row.
+      const byText = new Map<string, typeof athletes>();
+      for (const a of athletes) {
+        const txt = cellForAthlete(day, a.group, a.workoutGroup);
         if (!txt) continue;
-        if (!byText.has(txt)) byText.set(txt, []);
-        byText.get(txt)!.push(g);
+        const list = byText.get(txt);
+        if (list) list.push(a);
+        else byText.set(txt, [a]);
       }
 
-      for (const [txt, groups] of byText) {
-        // The coach writes a row for every group he plans for, which can run
-        // ahead of the roster — D exists on paper before anyone is in it. A
-        // workout nobody is assigned to is just an orphan row, so skip it.
-        const groupAthletes = athletes.filter((a) => groups.includes(a.group));
-        if (!groupAthletes.length) continue;
-
-        const c = classify(txt, GROUP_LR[groups[0]] ?? "90-100");
+      for (const [txt, groupAthletes] of byText) {
+        const c = classify(txt, modeLrTarget(groupAthletes));
         if (!c) continue;
         const wid = randomUUID();
         workoutRows.push({
