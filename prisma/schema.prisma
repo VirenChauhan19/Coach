@@ -6,8 +6,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Production runs Postgres; this file is the deployed truth. Local development
+// runs the same schema on SQLite via `npm run db:local`, which writes a
+// provider-swapped copy to prisma/schema.local.prisma (gitignored) so there is
+// never a second schema to keep in sync by hand.
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -170,7 +174,7 @@ model Message {
   @@index([type, recipientId, readAt])
   // Team channels (announcements, group chat, photos) page by newest-first.
   @@index([type, teamId, createdAt])
-  // A DM thread is "sent by me OR to me"; each side gets its own lookup path.
+  // A DM thread is "sent by me OR to me"; Postgres bitmap-ORs these two.
   @@index([type, senderId, createdAt])
   @@index([type, recipientId, createdAt])
 }

@@ -33,3 +33,6 @@ yarn-error.log*
 # firebase (deploy cache + debug logs; not source)
 /.firebase/
 firebase-debug.log*
+
+# generated local (sqlite) copy of the deployed schema
+/prisma/schema.local.prisma

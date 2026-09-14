@@ -56,7 +56,7 @@ athlete and the coach. One athlete can never see another athlete's data.
 | ----------- | ------------------------------------------------------------- |
 | Framework   | **Next.js 15** (App Router, React 19, TypeScript)             |
 | Styling     | **Tailwind CSS** + `lucide-react` icons                       |
-| Database    | **SQLite** via **Prisma 6** (zero external services to set up)|
+| Database    | **Postgres** in production, **SQLite** locally, via **Prisma 6** |
 | Auth        | Custom JWT sessions (`jose`) in HTTP-only cookies, `bcryptjs` |
 
 Everything runs locally with no cloud accounts or API keys required.
@@ -89,6 +89,13 @@ cp .env.example .env      # Windows PowerShell: copy .env.example .env
 
 `.env` just needs a `DATABASE_URL` (SQLite file) and a `JWT_SECRET` — the example
 file has sensible defaults for local development.
+
+`prisma/schema.prisma` is the deployed schema and says `postgresql`, because that
+is what production runs. Every local database command works from a generated
+SQLite copy of it (`prisma/schema.local.prisma`, gitignored) — `npm run setup` and
+`npm run db:local` write it for you. Change `schema.prisma`, then re-run
+`npm run db:local`; never edit the provider by hand, which is how a SQLite
+datasource ends up in a deploy.
 
 ### Demo logins
 
@@ -132,9 +139,13 @@ prints a username/password sheet (one per person, derived from their name, e.g.
 | `npm run dev`      | Start the dev server at `localhost:3000`                  |
 | `npm run build`    | Production build                                          |
 | `npm run start`    | Run the production build                                  |
-| `npm run setup`    | Generate client → push schema → seed demo data            |
+| `npm run setup`    | Local schema → generate client → push → seed              |
+| `npm run db:local` | Regenerate the local SQLite schema + client               |
 | `npm run db:seed`  | Re-seed the database (wipes & recreates demo data)        |
 | `npm run db:reset` | Force-reset the schema and re-seed                        |
+
+The seed loads the plan with nothing logged against it. `SEED_DEMO_CONTENT=1 npm run db:reset`
+adds the demo: invented feedback, messages, and a completed/skipped history.
 
 ---
 

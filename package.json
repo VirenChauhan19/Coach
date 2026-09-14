@@ -2,7 +2,7 @@
   "name": "scad-running-coach",
   "version": "1.0.0",
   "private": true,
-  "description": "Private team platform for a college running coach and athletes — personalized schedules, calendar, messaging, and feedback.",
+  "description": "Private team platform for a college running coach and athletes \u2014 personalized schedules, calendar, messaging, and feedback.",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -12,11 +12,12 @@
     "start": "next start",
     "lint": "next lint",
     "test:imports": "tsx --test src/lib/workout-import-file.test.ts src/lib/workout-import-parser.test.ts src/lib/workout-import-plan.test.ts src/lib/workout-import-service.test.ts",
-    "db:push": "prisma db push",
+    "db:push": "prisma db push --schema prisma/schema.local.prisma",
     "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "prisma db push --force-reset && tsx prisma/seed.ts",
-    "setup": "prisma generate && prisma db push && tsx prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "db:reset": "prisma db push --force-reset --schema prisma/schema.local.prisma && tsx prisma/seed.ts",
+    "setup": "node scripts/local-schema.mjs && prisma generate --schema prisma/schema.local.prisma && prisma db push --schema prisma/schema.local.prisma && tsx prisma/seed.ts",
+    "postinstall": "prisma generate",
+    "db:local": "node scripts/local-schema.mjs && prisma generate --schema prisma/schema.local.prisma"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
