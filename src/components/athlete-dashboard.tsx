@@ -203,7 +203,7 @@ export function AthleteDashboard({
                         </div>
                       </div>
                       <div className="mt-4">
-                        <WorkoutDetail workout={a.workout} customNote={a.customNote} />
+                        <WorkoutDetail workout={a.workout} customNote={a.customNote} liftTime={paces?.liftTime} />
                       </div>
                       <div className="mt-5 border-t border-slate-100 pt-4">
                         <AthleteWorkoutActions assignment={a} />
@@ -394,6 +394,7 @@ export function AthleteDashboard({
                               <WorkoutDetail
                                 workout={a.workout}
                                 customNote={a.customNote}
+                                liftTime={paces?.liftTime}
                                 compact
                               />
                             </div>

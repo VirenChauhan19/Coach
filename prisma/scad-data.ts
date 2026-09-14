@@ -14,10 +14,15 @@
 // the two ("VOL: C, WO: D" on the chart); see cellForAthlete() in classify.ts.
 // Booker and Ryan have dropped off the chart and keep their previous entries.
 // Aadhick is listed "TBD-INJ", which names no row, so he holds at B.
+//
+// Week 15 also carries that workbook's logistics rows — practice `time` and
+// `loc`, the `lift` window and the evening team `meeting` — which earlier
+// weeks predate. `liftTime` is the athlete's own slot inside that window;
+// lifting happens on workout days.
 
 export type Paces = { ez: string; tempo: string; tempoMed?: string; k10: string; k8: string; k6: string; k5: string; k3: string; mile: string };
-export type AthleteSeed = { name: string; email: string; group: string; workoutGroup?: string; lrTarget: string; ezTarget: string; xtTarget?: string; doubleFreq: string; xtFreq: string; paces: Paces };
-export type DayPlan = { A: string; B: string; C: string; D?: string; PR: string };
+export type AthleteSeed = { name: string; email: string; group: string; workoutGroup?: string; lrTarget: string; ezTarget: string; xtTarget?: string; doubleFreq: string; xtFreq: string; liftTime?: string; paces: Paces };
+export type DayPlan = { A: string; B: string; C: string; D?: string; PR: string; time?: string; loc?: string; lift?: string; meeting?: string };
 export type WeekPlan = { phase: number; week: number; theme: string; start: string; days: DayPlan[] };
 
 export const ATHLETES: AthleteSeed[] = [
@@ -30,6 +35,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "40-60",
     "doubleFreq": "0X",
     "xtFreq": "0X",
+    "liftTime": "10:00 AM",
     "paces": {
       "ez": "6:46-6:52",
       "tempo": "5:16-5:20",
@@ -51,6 +57,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "60-75",
     "doubleFreq": "1-2X",
     "xtFreq": "0X",
+    "liftTime": "10:00 AM",
     "paces": {
       "ez": "6:46-6:52",
       "tempo": "5:16-5:20",
@@ -110,6 +117,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "60-75",
     "doubleFreq": "0X",
     "xtFreq": "0X",
+    "liftTime": "2:00 PM",
     "paces": {
       "ez": "7:22-7:28",
       "tempo": "5:44-5:48",
@@ -131,6 +139,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "60-75",
     "doubleFreq": "0X",
     "xtFreq": "1X",
+    "liftTime": "10:00 AM",
     "paces": {
       "ez": "7:22-7:28",
       "tempo": "5:44-5:48",
@@ -152,6 +161,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "60-75",
     "doubleFreq": "1-2X",
     "xtFreq": "0X",
+    "liftTime": "2:00 PM",
     "paces": {
       "ez": "7:50-7:56",
       "tempo": "6:06-6:10",
@@ -173,6 +183,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "60-75",
     "doubleFreq": "1-2X",
     "xtFreq": "0X",
+    "liftTime": "10:00 AM",
     "paces": {
       "ez": "7:50-7:56",
       "tempo": "6:06-6:10",
@@ -194,6 +205,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "60-75",
     "doubleFreq": "0X",
     "xtFreq": "3X",
+    "liftTime": "5:00 PM",
     "paces": {
       "ez": "8:33-8:39",
       "tempo": "6:40-6:44",
@@ -216,6 +228,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "60-75",
     "doubleFreq": "0X",
     "xtFreq": "2-3X",
+    "liftTime": "10:00 AM",
     "paces": {
       "ez": "8:33-8:39",
       "tempo": "6:40-6:44",
@@ -237,6 +250,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "60-75",
     "doubleFreq": "0X",
     "xtFreq": "1-2X",
+    "liftTime": "2:00 PM",
     "paces": {
       "ez": "8:33-8:39",
       "tempo": "6:40-6:44",
@@ -258,6 +272,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "40-60",
     "doubleFreq": "0X",
     "xtFreq": "0X",
+    "liftTime": "2:00 PM",
     "paces": {
       "ez": "8:33-8:39",
       "tempo": "6:40-6:44",
@@ -279,6 +294,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "60-75",
     "doubleFreq": "0X",
     "xtFreq": "0X",
+    "liftTime": "5:00 PM",
     "paces": {
       "ez": "8:33-8:39",
       "tempo": "6:40-6:44",
@@ -300,6 +316,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "60-75",
     "doubleFreq": "0X",
     "xtFreq": "1X",
+    "liftTime": "2:00 PM",
     "paces": {
       "ez": "8:33-8:39",
       "tempo": "6:40-6:44",
@@ -321,6 +338,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "40-60",
     "doubleFreq": "0X",
     "xtFreq": "0X",
+    "liftTime": "2:00 PM",
     "paces": {
       "ez": "8:33-8:39",
       "tempo": "6:40-6:44",
@@ -342,6 +360,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "40-60",
     "doubleFreq": "0X",
     "xtFreq": "1X",
+    "liftTime": "2:00 PM",
     "paces": {
       "ez": "8:33-8:39",
       "tempo": "6:40-6:44",
@@ -364,6 +383,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "40-60",
     "doubleFreq": "0X",
     "xtFreq": "1-2X",
+    "liftTime": "OYO",
     "paces": {
       "ez": "9:02-9:08",
       "tempo": "7:02-7:06",
@@ -385,6 +405,7 @@ export const ATHLETES: AthleteSeed[] = [
     "xtTarget": "60-75",
     "doubleFreq": "0X",
     "xtFreq": "0X",
+    "liftTime": "2:00 PM",
     "paces": {
       "ez": "10:21-10:27",
       "tempo": "8:04-8:08",
@@ -1111,42 +1132,57 @@ export const WEEKS: WeekPlan[] = [
         "B": "5-7 X 5' @ ST-MT W/ 60-90\"",
         "C": "5-7 X 5' @ ST-MT W/ 60-90\"",
         "D": "6-8 X 3' @ ST-MT W/ 1'",
-        "PR": "FUEL + DAY 1 LIFT + CORE & HIP + RECOVERY"
+        "PR": "FUEL + DAY 1 LIFT + CORE & HIP + RECOVERY",
+        "time": "6:50 AM",
+        "loc": "-1 (Armour Drive)",
+        "lift": "10:00, 2:00, 5:00",
+        "meeting": "Men: 8PM"
       },
       {
         "A": "50-60' EZ",
         "B": "40-50' EZ",
         "C": "30-40' EZ",
         "D": "20-30' EZ",
-        "PR": "FUEL + LIGHT STRETCH"
+        "PR": "FUEL + LIGHT STRETCH",
+        "time": "8:00 AM",
+        "loc": "-1 (Piedmont)",
+        "meeting": "Women: 8PM"
       },
       {
         "A": "8-10 X 90\" @ 8K/6K W/ 60/90\"",
         "B": "8-10 X 90\" @ 8K/6K W/ 60/90\"",
         "C": "8-10 X 90\" @ 8K/6K W/ 60/90\"",
         "D": "8-10 X 90\" @ 8K/6K W/ 60/90\"",
-        "PR": "FUEL + DAY 2 LIFT + CORE & HIP + RECOVERY"
+        "PR": "FUEL + DAY 2 LIFT + CORE & HIP + RECOVERY",
+        "time": "7:00 AM",
+        "loc": "-1 (Piedmont)",
+        "lift": "10:00, 2:00, 5:00"
       },
       {
         "A": "50-60' EZ",
         "B": "40-50' EZ",
         "C": "30-40' EZ",
         "D": "20-30' EZ",
-        "PR": "FUEL + LIGHT STRETCH"
+        "PR": "FUEL + LIGHT STRETCH",
+        "loc": "OYO pending TR subm."
       },
       {
         "A": "PRE-MEET EI: 2X5X20\"/40\"/3' EI @ GP",
         "B": "PRE-MEET EI: 2X5X20\"/40\"/3' EI @ GP",
         "C": "PRE-MEET EI: 2X5X20\"/40\"/3' EI @ GP",
         "D": "PRE-MEET EI: 2X5X20\"/40\"/3' EI @ GP",
-        "PR": "FUEL + RECOVERY"
+        "PR": "FUEL + RECOVERY",
+        "time": "9:00 AM",
+        "loc": "-1 (Piedmont)"
       },
       {
         "A": "CONVERSE KICK-OFF",
         "B": "CONVERSE KICK-OFF",
         "C": "CONVERSE KICK-OFF",
         "D": "CONVERSE KICK-OFF",
-        "PR": "FUEL + LIGHT STRETCH"
+        "PR": "FUEL + LIGHT STRETCH",
+        "time": "TBD",
+        "loc": "Meet site"
       },
       {
         "A": "OFF",

@@ -73,7 +73,7 @@ function SectionHeader({
   );
 }
 
-function Card({ a }: { a: AssignmentDTO }) {
+function Card({ a, liftTime }: { a: AssignmentDTO; liftTime?: string | null }) {
   const { format, smartDayLabel } = useDates();
   const isRest = a.workout.type === "REST";
   const meta = workoutMeta(a.workout.type);
@@ -124,7 +124,7 @@ function Card({ a }: { a: AssignmentDTO }) {
 
           {!isRest && (
             <div className="mt-4 rounded-lg border border-paper-200 bg-paper-50/80 p-3">
-              <WorkoutDetail workout={a.workout} customNote={a.customNote} compact />
+              <WorkoutDetail workout={a.workout} customNote={a.customNote} liftTime={liftTime} compact />
             </div>
           )}
           {isRest && a.workout.notes && (
@@ -146,10 +146,12 @@ export function AthleteWorkouts({
   assignments,
   viewIds,
   nowISO,
+  liftTime,
 }: {
   assignments: AssignmentDTO[];
   viewIds: string[];
   nowISO: string;
+  liftTime?: string | null;
 }) {
   const { format, smartDayLabel } = useDates();
 
@@ -331,7 +333,7 @@ export function AthleteWorkouts({
               </p>
             ) : (
               <RevealList items={upcoming} className="space-y-4 list-long" noun="sessions">
-                {(a) => <Card key={a.id} a={a} />}
+                {(a) => <Card key={a.id} a={a} liftTime={liftTime} />}
               </RevealList>
             )}
           </section>
@@ -340,7 +342,7 @@ export function AthleteWorkouts({
             <section>
               <SectionHeader title="Earlier" count={past.length} muted />
               <RevealList items={past} className="space-y-4 list-long" noun="sessions">
-                {(a) => <Card key={a.id} a={a} />}
+                {(a) => <Card key={a.id} a={a} liftTime={liftTime} />}
               </RevealList>
             </section>
           )}

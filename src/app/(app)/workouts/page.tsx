@@ -3,6 +3,7 @@ import { dateHelpers } from "@/lib/date";
 import { getCurrentUser, getViewerTimeZone } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { toAssignmentDTO } from "@/lib/dto";
+import { parsePaces } from "@/lib/utils";
 import { WORKOUTS_PAST_DAYS } from "@/lib/query-limits";
 import { WORKOUT_ORDER, ASSIGNMENT_BY_WORKOUT } from "@/lib/ordering";
 import { CoachWorkouts, type CoachWorkoutRow } from "@/components/coach-workouts";
@@ -73,11 +74,14 @@ export default async function WorkoutsPage() {
   }
 
   // Athlete
-  const assignmentRows = await prisma.assignment.findMany({
-    where: { athleteId: user.id, workout: { date: { gte: historyFrom } } },
-    include: { workout: true, feedback: true },
-    orderBy: ASSIGNMENT_BY_WORKOUT,
-  });
+  const [assignmentRows, profile] = await Promise.all([
+    prisma.assignment.findMany({
+      where: { athleteId: user.id, workout: { date: { gte: historyFrom } } },
+      include: { workout: true, feedback: true },
+      orderBy: ASSIGNMENT_BY_WORKOUT,
+    }),
+    prisma.user.findUnique({ where: { id: user.id }, select: { paces: true } }),
+  ]);
   const assignments = assignmentRows.map(toAssignmentDTO);
 
   const todayEnd = endOfDay(now);
@@ -85,5 +89,12 @@ export default async function WorkoutsPage() {
     .filter((a) => a.status === "ASSIGNED" && a.workout.date <= todayEnd)
     .map((a) => a.id);
 
-  return <AthleteWorkouts assignments={assignments} viewIds={viewIds} nowISO={nowISO} />;
+  return (
+    <AthleteWorkouts
+      assignments={assignments}
+      viewIds={viewIds}
+      nowISO={nowISO}
+      liftTime={parsePaces(profile?.paces)?.liftTime}
+    />
+  );
 }

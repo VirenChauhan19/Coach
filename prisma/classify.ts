@@ -96,10 +96,21 @@ export function cellForAthlete(
  * classify() is: a live-data script needs it, and importing seed.ts would run
  * the reset.
  */
-export function prNote(pr: string | undefined): string | null {
+export function prNote(pr: string | undefined, meeting?: string): string | null {
   const bits: string[] = [];
   if (pr && pr !== "NONE" && pr !== "TRAINING RECAP") bits.push(pr);
   if (pr && pr.includes("RECAP")) bits.push("Submit your weekly training recap.");
+  if (meeting && meeting !== "NA") bits.push(`Team meeting — ${meeting}`);
+  return bits.length ? bits.join(" · ") : null;
+}
+
+/**
+ * Where and when to be there, from the workbook's TIME and LOC rows, as the one
+ * line the workout card shows. Weeks written before the coach started including
+ * those rows simply have neither.
+ */
+export function workoutLocation(day: { time?: string; loc?: string }): string | null {
+  const bits = [day.time, day.loc].filter(Boolean);
   return bits.length ? bits.join(" · ") : null;
 }
 

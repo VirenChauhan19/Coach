@@ -63,6 +63,8 @@ export type Paces = {
   doubleFreq?: string;
   xtFreq?: string;
   xtTarget?: string;
+  /** This athlete's slot in the lift window, on days the plan lifts. */
+  liftTime?: string;
 };
 
 export function parsePaces(json: string | null | undefined): Paces | null {

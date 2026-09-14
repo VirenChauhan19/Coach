@@ -69,7 +69,7 @@ async function main() {
     const day = week.days[d];
     if (!day) continue;
     const date = new Date(monday.getTime() + d * 24 * 60 * 60 * 1000);
-    const notes = prNote(day.PR);
+    const notes = prNote(day.PR, day.meeting);
 
     const cells: Record<string, string | undefined> = { A: day.A, B: day.B, C: day.C, D: day.D };
     const byText = new Map<string, string[]>();

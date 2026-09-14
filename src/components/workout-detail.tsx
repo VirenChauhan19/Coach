@@ -1,4 +1,4 @@
-import { ExternalLink, Gauge, MapPin, Ruler, StickyNote } from "lucide-react";
+import { Dumbbell, ExternalLink, Gauge, MapPin, Ruler, StickyNote } from "lucide-react";
 import type { WorkoutDTO } from "@/lib/dto";
 import { workoutMeta } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -6,12 +6,18 @@ import { cn } from "@/lib/utils";
 export function WorkoutDetail({
   workout,
   customNote,
+  liftTime,
   compact = false,
 }: {
   workout: WorkoutDTO;
   customNote?: string | null;
+  /** The viewer's own lift slot; shown only on days the plan actually lifts. */
+  liftTime?: string | null;
   compact?: boolean;
 }) {
+  // The coach schedules one lift window for the squad and splits it by name
+  // over e-mail, so the day says "DAY 1 LIFT" and the slot lives on the athlete.
+  const liftsToday = Boolean(liftTime) && /\bLIFT\b/i.test(workout.notes ?? "");
   const meta = workoutMeta(workout.type);
   const segments = [
     { label: "Warm-up", value: workout.warmup },
@@ -77,6 +83,13 @@ export function WorkoutDetail({
           <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-700">
             {workout.notes}
           </p>
+        </div>
+      )}
+
+      {liftsToday && (
+        <div className="inline-flex items-center gap-1.5 rounded-md bg-paper-100 px-2.5 py-1.5 text-sm text-slate-600">
+          <Dumbbell size={15} className="text-slate-400" />
+          Your lift <span className="font-semibold text-ink">{liftTime}</span>
         </div>
       )}
 

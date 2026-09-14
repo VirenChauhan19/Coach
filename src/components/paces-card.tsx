@@ -75,9 +75,14 @@ export function PacesCard({
         ))}
       </div>
 
-      {(paces.doubleFreq || paces.xtFreq) && (
+      {(paces.doubleFreq || paces.xtFreq || paces.liftTime) && (
         <div className="mt-3 flex gap-3 border-t border-paper-200 pt-3 text-xs text-slate-500">
           {paces.doubleFreq && <span>Doubles: <span className="font-medium text-slate-700">{paces.doubleFreq}</span></span>}
+          {paces.liftTime && (
+            <span>
+              Lift: <span className="font-medium text-slate-700">{paces.liftTime}</span>
+            </span>
+          )}
           {paces.xtFreq && (
             <span>
               Cross-train: <span className="font-medium text-slate-700">{paces.xtFreq}</span>

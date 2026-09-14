@@ -7,7 +7,7 @@ import { subHours } from "date-fns";
 // workouts then land on exactly the days the written plan says they do.
 import { dateHelpers, TEAM_TIME_ZONE, workoutInstantForDay } from "../src/lib/date";
 import { ATHLETES, WEEKS } from "./scad-data";
-import { cellForAthlete, classify, prNote } from "./classify";
+import { cellForAthlete, classify, prNote, workoutLocation } from "./classify";
 
 const { startOfDay, isSameDay, subDays } = dateHelpers(TEAM_TIME_ZONE);
 
@@ -101,7 +101,13 @@ async function main() {
         mileageGroup: a.group,
         lrTarget: a.lrTarget,
         ezTarget: a.ezTarget,
-        paces: JSON.stringify({ ...a.paces, doubleFreq: a.doubleFreq, xtFreq: a.xtFreq, xtTarget: a.xtTarget }),
+        paces: JSON.stringify({
+          ...a.paces,
+          doubleFreq: a.doubleFreq,
+          xtFreq: a.xtFreq,
+          xtTarget: a.xtTarget,
+          liftTime: a.liftTime,
+        }),
         phone: `(404) 555-0${100 + (seed % 900)}`,
         lastReadAnnouncementsAt: subDays(new Date(), 2),
       },
@@ -133,6 +139,7 @@ async function main() {
     mainSet: string | null;
     pace: string | null;
     notes: string | null;
+    location: string | null;
     teamId: string;
     createdById: string;
   };
@@ -159,8 +166,9 @@ async function main() {
       // at exactly 12:00Z — a zoned step would drift an hour across a DST edge.
       const date = new Date(monday.getTime() + d * 24 * 60 * 60 * 1000);
 
-      // PR (prehab/recovery/fuel) note for the day
-      const notes = prNote(day.PR);
+      // PR (prehab/recovery/fuel) note for the day, plus where to be
+      const notes = prNote(day.PR, day.meeting);
+      const location = workoutLocation(day);
 
       // Resolve the row each athlete follows, then group them by identical
       // text. Going athlete-first rather than row-first is what lets someone on
@@ -190,6 +198,7 @@ async function main() {
           mainSet: c.mainSet,
           pace: c.pace,
           notes,
+          location,
           teamId: team.id,
           createdById: coach.id,
         });
@@ -235,7 +244,7 @@ async function main() {
 
   console.log(`Inserting ${workoutRows.length} workouts, ${assignmentRows.length} assignments...`);
   await prisma.workout.createMany({
-    data: workoutRows.map(({ id, title, date, type, scope, distance, mainSet, pace, notes, teamId, createdById }) => ({
+    data: workoutRows.map(({ id, title, date, type, scope, distance, mainSet, pace, notes, location, teamId, createdById }) => ({
       id,
       title,
       date,
@@ -245,6 +254,7 @@ async function main() {
       mainSet,
       pace,
       notes,
+      location,
       teamId,
       createdById,
     })),
