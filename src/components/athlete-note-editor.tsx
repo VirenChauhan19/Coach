@@ -36,7 +36,7 @@ export function AthleteNoteEditor({
         </h2>
       </div>
       <p className="mt-1.5 text-sm text-slate-500">
-        Private notes only {athleteFirstName} sees on a session — coaching cues,
+        Private notes only {athleteFirstName} sees on a session: coaching cues,
         pace tweaks, or a check-in. Tap any workout to add or edit one.
       </p>
 

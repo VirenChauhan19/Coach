@@ -224,10 +224,8 @@ export function AppShell({
       {/* Decorative wash. Desktop only: on a phone this is a full-viewport
           fixed layer the compositor carries through every scroll frame, and the
           body's own paper gradient already covers that size. */}
-      <div className="pointer-events-none fixed inset-0 hidden bg-[radial-gradient(circle_at_12%_8%,rgb(234_179_8_/_0.18),transparent_26%),radial-gradient(circle_at_88%_0%,rgb(19_23_31_/_0.10),transparent_30%)] lg:block" />
 
-      <aside className="fixed inset-y-4 left-4 z-30 hidden w-80 flex-col overflow-hidden rounded-lg border border-white/10 bg-ink shadow-[0_24px_70px_-28px_rgb(19_23_31_/_0.70)] lg:flex">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgb(234_179_8_/_0.22),transparent_30%),linear-gradient(180deg,rgb(255_255_255_/_0.07),transparent_42%)]" />
+      <aside className="fixed inset-y-4 left-4 z-30 hidden w-80 flex-col overflow-hidden rounded-lg border border-white/10 bg-ink lg:flex">
 
         <div className="relative px-5 pb-4 pt-5">
           <Link href="/dashboard" className="group flex items-center gap-3">
