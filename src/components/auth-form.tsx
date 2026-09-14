@@ -62,7 +62,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
+    <div className="flex min-h-app flex-col lg:flex-row">
       {/* Brand / hero panel */}
       <div className="relative hidden overflow-hidden bg-ink lg:flex lg:w-[44%] lg:flex-col lg:justify-between lg:p-12 lg:text-white">
         {/* uniform stripe down the edge */}

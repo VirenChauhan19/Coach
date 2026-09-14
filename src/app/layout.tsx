@@ -41,7 +41,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${oswald.variable}`}>
-      <body className="min-h-screen font-sans">
+      <body className="min-h-app font-sans">
         {/* Dev only: unregister any stale service worker left on this origin
             (a common localhost cause of weird caching) and drop its caches.
             Skipped in production so it never trips the strict CSP. */}

@@ -57,7 +57,7 @@ export function SetPasswordForm({ name }: { name: string }) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-paper-50 px-5 py-10">
+    <div className="flex min-h-app items-center justify-center bg-paper-50 px-5 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex items-center gap-3">
           <LogoMark size={40} />

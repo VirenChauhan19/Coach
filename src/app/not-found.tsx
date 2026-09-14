@@ -3,7 +3,7 @@ import { LogoMark } from "@/components/ui/logo";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-6 text-center">
+    <div className="flex min-h-app flex-col items-center justify-center bg-slate-50 px-6 text-center">
       <LogoMark size={48} />
       <h1 className="mt-6 text-3xl font-bold tracking-tight text-ink">
         Page not found

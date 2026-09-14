@@ -14,6 +14,16 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  /* The bottom nav is position:fixed, which anchors it to the *layout* viewport.
+     Rubber-banding the document — the overscroll bounce you get swiping down at
+     the top of a page — moves the visual viewport out from under it, and the bar
+     visibly flies up the screen before settling back. Refusing the bounce is
+     what keeps pinned chrome pinned; it also turns off pull-to-refresh, which an
+     installed app has no use for. */
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
   body {
     @apply bg-paper text-ink antialiased;
     background-image: linear-gradient(
@@ -51,6 +61,19 @@
   .scroll-thin::-webkit-scrollbar-thumb {
     background-color: rgb(203 213 225);
     border-radius: 9999px;
+  }
+}
+
+@layer utilities {
+  /* Full height of the viewport you can actually see. iOS resolves 100vh to the
+     *large* viewport — the height the page would have with the browser chrome
+     hidden — so a 100vh shell is taller than the screen whenever that chrome is
+     showing, and everything pinned to the bottom sits below the fold. 100dvh
+     tracks the real thing; the 100vh line is the fallback for anything old
+     enough not to know dvh. */
+  .min-h-app {
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 }
 

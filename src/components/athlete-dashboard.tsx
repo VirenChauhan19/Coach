@@ -89,7 +89,11 @@ export function AthleteDashboard({
 
   // Swiping the strip sideways pages it, which is how this gets used on a
   // phone. Anything mostly-vertical is the page scrolling and is left alone.
+  // The swipe starts on top of a day button, and some browsers still deliver
+  // the click afterwards, so a completed swipe arms a flag that swallows it —
+  // otherwise paging the week also opens whichever day you started the swipe on.
   const swipeFrom = useRef<{ x: number; y: number } | null>(null);
+  const swiped = useRef(false);
   const onTouchStart = (e: React.TouchEvent) => {
     const t = e.touches[0];
     swipeFrom.current = { x: t.clientX, y: t.clientY };
@@ -102,7 +106,16 @@ export function AthleteDashboard({
     const dx = t.clientX - from.x;
     const dy = t.clientY - from.y;
     if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    swiped.current = true;
     goWeek(dx < 0 ? 1 : -1);
+  };
+
+  const openDayCell = (dateISO: string) => {
+    if (swiped.current) {
+      swiped.current = false;
+      return;
+    }
+    setOpenDay((current) => (current === dateISO ? null : dateISO));
   };
 
   const offset = weekIndex - currentWeekIndex;
@@ -265,7 +278,7 @@ export function AthleteDashboard({
                   <button
                     key={d.dateISO}
                     type="button"
-                    onClick={() => setOpenDay(isOpen ? null : d.dateISO)}
+                    onClick={() => openDayCell(d.dateISO)}
                     aria-expanded={isOpen}
                     // Only points at the panel while it exists.
                     aria-controls={isOpen ? "week-day-detail" : undefined}

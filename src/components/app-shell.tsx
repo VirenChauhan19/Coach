@@ -220,7 +220,7 @@ export function AppShell({
   );
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-app">
       {/* Decorative wash. Desktop only: on a phone this is a full-viewport
           fixed layer the compositor carries through every scroll frame, and the
           body's own paper gradient already covers that size. */}
@@ -375,7 +375,7 @@ export function AppShell({
         </nav>
       </div>
 
-      <main className="relative min-h-screen lg:pl-[22rem]">
+      <main className="relative min-h-app lg:pl-[22rem]">
         <div
           key={pathname}
           className="mx-auto w-full max-w-[1680px] animate-page-enter px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:py-8 2xl:px-10"
